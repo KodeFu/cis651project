@@ -4,6 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CreateGroup">
+    tools:context=".CreateGroup"
+    android:layout_margin="10dp"
+    >
+
+    <EditText
+        android:id="@+id/group_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="20dp"
+        android:hint="Group Name"/>
+    <Button
+        android:id="@+id/create_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/group_name"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="Create Group"/>
+    <TextView
+        android:id="@+id/text_view_token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
+        app:layout_constraintTop_toBottomOf="@id/create_group"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="20dp"
+        android:text="Group Token"/>
+    <TextView
+        android:id="@+id/Token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/text_view_token"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="20dp"
+        android:hint="None"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

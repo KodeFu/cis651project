@@ -33,18 +33,24 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:text="Create Group"/>
-    <TextView
-        android:id="@+id/text_view_token"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="70dp"
-        android:textSize="20dp"
-        android:text="Group Token"/>
-    <TextView
-        android:id="@+id/Token"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:hint="None"/>
-
+        android:layout_marginBottom="100dp">
+        <TextView
+            android:id="@+id/text_view_token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="70dp"
+            android:textSize="20dp"
+            android:layout_above="@id/token"
+            android:text="Group Token"/>
+        <TextView
+            android:id="@+id/token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:layout_alignParentBottom="true"
+            android:hint="None"/>
+    </RelativeLayout>
 </LinearLayout>

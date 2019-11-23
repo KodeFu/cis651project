@@ -24,11 +24,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void OnClickEditGroupCategories(View view) {
-        Intent intent = new Intent(MainActivity.this, EditGroupCategories.class);
-        startActivity(intent);
-    }
-
     public void OnClickJoinGroup(View view) {
         Intent intent = new Intent(MainActivity.this, JoinGroup.class);
         startActivity(intent);

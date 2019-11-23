@@ -14,8 +14,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void OnClick(View view) {
+    public void OnClickCreateGroup(View view) {
         Intent intent = new Intent(MainActivity.this, CreateGroup.class);
+        startActivity(intent);
+    }
+
+    public void OnClickAdministerGroup(View view) {
+        Intent intent = new Intent(MainActivity.this, AdministerGroup.class);
+        startActivity(intent);
+    }
+
+    public void OnClickEditGroupCategories(View view) {
+        Intent intent = new Intent(MainActivity.this, EditGroupCategories.class);
+        startActivity(intent);
+    }
+
+    public void OnClickJoinGroup(View view) {
+        Intent intent = new Intent(MainActivity.this, JoinGroup.class);
+        startActivity(intent);
+    }
+
+    public void OnClickSubmitReceipt(View view) {
+        Intent intent = new Intent(MainActivity.this, SubmitReceipt.class);
         startActivity(intent);
     }
 }

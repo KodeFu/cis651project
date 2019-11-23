@@ -6,22 +6,40 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
+        android:id="@+id/create_group_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button"
-        tools:layout_editor_absoluteX="149dp"
-        tools:layout_editor_absoluteY="163dp"
-        android:onClick="OnClick"/>
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Create Group"
+        android:onClick="OnClickCreateGroup"/>
+    <Button
+        android:id="@+id/administer_group_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/create_group_button"
+        android:text="Administer Group"
+        android:onClick="OnClickAdministerGroup"/>
+    <Button
+        android:id="@+id/edit_group_categories_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/administer_group_button"
+        android:text="Edit Group Cateogories"
+        android:onClick="OnClickEditGroupCategories"/>
+    <Button
+        android:id="@+id/join_group_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/edit_group_categories_button"
+        android:text="Join Group"
+        android:onClick="OnClickJoinGroup"/>
+    <Button
+        android:id="@+id/submit_receipt_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/join_group_button"
+        android:text="Submit Receipt"
+        android:onClick="OnClickSubmitReceipt"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

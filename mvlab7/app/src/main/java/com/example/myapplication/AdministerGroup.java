@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class AdministerGroup extends AppCompatActivity {
     String[] categories = { "Clothing", "Groceries", "Dining", "Ride Share", "Entertainment", "Gifts", "Fuel / Gas", "Automobile", "Home Improvement", "Credit Cards"};
@@ -21,5 +22,25 @@ public class AdministerGroup extends AppCompatActivity {
         Spinner category = (Spinner) findViewById(R.id.category);
         category.setAdapter(adapter);
 
+    }
+
+    public void OnClickGroupDelete(View view) {
+        Toast.makeText(getApplicationContext(), "OnClickGroupDelete",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public void OnClickGroupUpdate(View view) {
+        Toast.makeText(getApplicationContext(), "OnClickGroupUpdate",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public void OnClickCategoryDelete(View view) {
+        Toast.makeText(getApplicationContext(), "OnClickCategoryDelete",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public void OnClickCategoryUpdate(View view) {
+        Toast.makeText(getApplicationContext(), "OnClickCategoryUpdate",
+                Toast.LENGTH_SHORT).show();
     }
 }

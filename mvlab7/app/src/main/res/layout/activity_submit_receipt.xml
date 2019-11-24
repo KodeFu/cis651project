@@ -58,6 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:textSize="16dp"
+        android:onClick="OnClickBrowse"
         android:text="Browse"/>
     <ImageView
         android:id="@+id/receipt"
@@ -72,5 +73,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:text="Submit Receipt"/>
+        android:text="Submit Receipt"
+        android:onClick="OnClickSubmitReceipt"/>
 </LinearLayout>

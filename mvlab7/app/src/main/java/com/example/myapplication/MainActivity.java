@@ -1,36 +1,45 @@
 package com.example.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        buildNavDrawerAndToolbar();
     }
 
-    public void OnClickCreateGroup(View view) {
-        Intent intent = new Intent(MainActivity.this, CreateGroup.class);
+    public void onClickCreateGroup(View view) {
+        Intent intent = new Intent(this, CreateGroupActivity.class);
         startActivity(intent);
     }
 
-    public void OnClickAdministerGroup(View view) {
-        Intent intent = new Intent(MainActivity.this, AdministerGroup.class);
+    public void onClickJoinGroup(View view) {
+        Intent intent = new Intent(this, JoinGroupActivity.class);
         startActivity(intent);
     }
 
-    public void OnClickJoinGroup(View view) {
-        Intent intent = new Intent(MainActivity.this, JoinGroup.class);
+    public void onClickLeaveGroup(View view) {
+        Toast.makeText(getApplicationContext(), "Leave Group",
+                Toast.LENGTH_SHORT).show();  }
+
+    public void onClickAdministerGroup(View view) {
+        Intent intent = new Intent(this, AdministerGroupActivity.class);
         startActivity(intent);
     }
 
-    public void OnClickSubmitReceipt(View view) {
-        Intent intent = new Intent(MainActivity.this, SubmitReceipt.class);
+    public void onClickViewSpending(View view) {
+        Intent intent = new Intent(this, ViewSpendingActivity.class);
+        startActivity(intent);
+    }
+
+    public void onClickSubmitReceipt(View view) {
+        Intent intent = new Intent(this, SubmitReceiptActivity.class);
         startActivity(intent);
     }
 }

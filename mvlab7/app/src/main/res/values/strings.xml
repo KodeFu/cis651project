@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Family Budget</string>
+    <string name="nd_open">Navigation Drawer Opened</string>
+    <string name="nd_close">Navigation Drawer Closed</string>
 </resources>

@@ -54,7 +54,8 @@
                     android:id="@+id/start_date_text_view"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:hint="Start Date"/>
             </LinearLayout>
             <LinearLayout
                 android:id="@+id/ll_end_date"
@@ -72,7 +73,26 @@
                     android:id="@+id/end_date_text_view"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:hint="EndDate"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/ll_end_date">
+                <Button
+                    android:id="@+id/btn_submit_receipt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:textSize="16dp"
+                    android:text="Get Spending Report"
+                    android:onClick="onClickGetSpendingReport"/>
+                <ListView
+                    android:id="@+id/spending"
+                    android:layout_width="match_parent"
+                    android:layout_height="320dp"/>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>

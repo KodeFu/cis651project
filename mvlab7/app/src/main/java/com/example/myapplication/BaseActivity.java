@@ -18,8 +18,6 @@ import com.google.android.material.navigation.NavigationView;
 public class BaseActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private Toolbar toolbar;
-    private NavigationView navigationView;
     private DrawerLayout drawerLayout;
 
     @Override
@@ -47,9 +45,9 @@ public class BaseActivity extends AppCompatActivity
     }
 
     protected void buildNavDrawerAndToolbar() {
-        toolbar = findViewById(R.id.common_toolbar);
+        Toolbar toolbar = findViewById(R.id.common_toolbar);
         setSupportActionBar(toolbar);
-        navigationView = findViewById(R.id.common_navigation_view);
+        NavigationView navigationView = findViewById(R.id.common_navigation_view);
         drawerLayout = findViewById(R.id.drawer);
         navigationView.setNavigationItemSelectedListener(this);
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(

@@ -14,72 +14,90 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <include layout="@layout/common_toolbar"/>
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <EditText
-                android:id="@+id/et_username"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                android:textSize="16dp"
-                android:hint="Username"/>
-            <EditText
-                android:id="@+id/et_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/et_username"
-                android:textSize="16dp"
-                android:hint="Password"/>
-            <EditText
-                android:id="@+id/et_city"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/et_password"
-                android:textSize="16dp"
-                android:hint="City"/>
-            <EditText
-                android:id="@+id/et_state"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/et_city"
-                android:textSize="16dp"
-                android:hint="State"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="@id/btn_upload_photo"
-                app:layout_constraintBottom_toBottomOf="@id/btn_upload_photo"
-                android:textSize="16dp"
-                android:text="Profile Photo:"/>
-            <Button
-                android:id="@+id/btn_upload_photo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/et_state"
-                android:textSize="16dp"
-                android:text="Upload Photo"
-                android:onClick="onClickUploadPhoto"/>
-            <ImageView
-                android:id="@+id/iv_profile_photo"
-                android:layout_width="match_parent"
-                android:layout_height="600px"
-                app:layout_constraintTop_toBottomOf="@id/btn_upload_photo"
-                android:scaleType="fitXY"
-                android:background="@color/colorPrimaryDark"/>
-            <Button
-                android:id="@+id/btn_save_profile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_profile_photo"
-                android:layout_gravity="right"
-                android:textSize="16dp"
-                android:text="Save Profile"
-                android:onClick="onClickSaveProfile"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_height="match_parent">
+                <EditText
+                    android:id="@+id/et_username"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textSize="16dp"
+                    android:hint="Username"/>
+                <EditText
+                    android:id="@+id/et_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/et_username"
+                    android:textSize="16dp"
+                    android:hint="Password"/>
+                <EditText
+                    android:id="@+id/et_first_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/et_password"
+                    android:textSize="16dp"
+                    android:hint="First Name"/>
+                <EditText
+                    android:id="@+id/et_last_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/et_first_name"
+                    android:textSize="16dp"
+                    android:hint="Last Name"/>
+                <EditText
+                    android:id="@+id/et_city"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/et_last_name"
+                    android:textSize="16dp"
+                    android:hint="City"/>
+                <EditText
+                    android:id="@+id/et_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/et_city"
+                    android:textSize="16dp"
+                    android:hint="State"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/btn_upload_photo"
+                    app:layout_constraintBottom_toBottomOf="@id/btn_upload_photo"
+                    android:textSize="16dp"
+                    android:text="Profile Photo:"/>
+                <Button
+                    android:id="@+id/btn_upload_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/et_state"
+                    android:textSize="16dp"
+                    android:text="Upload Photo"
+                    android:onClick="onClickUploadPhoto"/>
+                <ImageView
+                    android:id="@+id/iv_profile_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="600px"
+                    app:layout_constraintTop_toBottomOf="@id/btn_upload_photo"
+                    android:scaleType="fitXY"
+                    android:background="@color/colorPrimaryDark"/>
+                <Button
+                    android:id="@+id/btn_save_profile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/iv_profile_photo"
+                    android:layout_gravity="right"
+                    android:textSize="16dp"
+                    android:text="Save Profile"
+                    android:onClick="onClickSaveProfile"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

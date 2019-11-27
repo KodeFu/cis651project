@@ -1,10 +1,7 @@
 package com.example.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.view.View;
-import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 public class CreateGroupActivity extends BaseActivity {

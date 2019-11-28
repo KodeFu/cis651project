@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "838445994928",
+    "firebase_url": "https://family-budget-df281.firebaseio.com",
+    "project_id": "family-budget-df281",
+    "storage_bucket": "family-budget-df281.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838445994928:android:5031ca8c92c9f502acbc75",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "838445994928-br61gu0hoh910ds0jls29p9qlq0ede1f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASzOdY5wBfg7mp04ymPQpNvjjdG3SbLsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "838445994928-br61gu0hoh910ds0jls29p9qlq0ede1f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

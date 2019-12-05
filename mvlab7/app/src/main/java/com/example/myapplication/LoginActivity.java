@@ -37,8 +37,16 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
+
         if(currentUser!=null) {
-            successfulLogin();
+            if(currentUser.isEmailVerified()) {
+                successfulLogin();
+            }
+            else
+            {
+                Toast.makeText(this, "Email is not Verified",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -47,25 +55,35 @@ public class LoginActivity extends AppCompatActivity {
         EditText password = findViewById(R.id.et_password);
         if (email.getText().toString().matches("") || password.getText().toString().matches(""))
         {
-            Toast.makeText(getApplicationContext(), "Enter both email and password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Enter both email and password",
+                    Toast.LENGTH_SHORT).show();
         }
         else
         {
-            mAuth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString()).addOnSuccessListener(this,
-                    new OnSuccessListener<AuthResult>() {
+            mAuth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                    .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                         @Override
                         public void onSuccess(AuthResult authResult) {
-                            Log.d("debug", "onClickSignIn:success");
-                            Toast.makeText(getApplicationContext(), "Sign in succeeded.", Toast.LENGTH_SHORT).show();
-                            successfulLogin();
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            if(currentUser.isEmailVerified()) {
+                                Log.d("debug", "onClickSignIn:success");
+                                Toast.makeText(LoginActivity.this, "Sign in succeeded.",
+                                        Toast.LENGTH_SHORT).show();
+                                successfulLogin();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Email is not Verified",
+                                        Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }).addOnFailureListener(this, new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d("debug", "onClickSignIn Failure:" + e.getMessage());
-                    Toast.makeText(getApplicationContext(), "Sign in failure" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                    })
+                    .addOnFailureListener(this, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.d("debug", "onClickSignIn Failure:" + e.getMessage());
+                            Toast.makeText(LoginActivity.this, "Sign in failure" + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 

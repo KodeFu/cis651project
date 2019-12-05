@@ -9,8 +9,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,22 +56,41 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void createAccount(String email, String password) {
-        Log.d("debug", "createAccount");
-        mAuth.createUserWithEmailAndPassword(email, password).addOnSuccessListener(this,
-                new OnSuccessListener<AuthResult>() {
+        Log.d("debug", "createAccount:" + email);
+        // [START create_user_with_email]
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         Log.d("debug", "createUserWithEmail:success");
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getApplicationContext(), "Authentication succeeded.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, "Authentication succeeded.",
+                                Toast.LENGTH_SHORT).show();
+                        SendVerification();
                     }
-                }).addOnFailureListener(this, new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("debug", "createAccount Failure:" + e.getMessage());
-                FirebaseUser user = mAuth.getCurrentUser();
-                Toast.makeText(getApplicationContext(), "Failure" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("debug", "Failure:"+e.getMessage());
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        Toast.makeText(RegisterActivity.this, "Failure:"+e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void SendVerification(){
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        currentUser.sendEmailVerification()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(RegisterActivity.this, "Email Sent",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }

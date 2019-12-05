@@ -9,52 +9,37 @@
     tools:context=".RegisterActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <EditText
-            android:id="@+id/et_username"
+            android:id="@+id/et_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             android:textSize="16dp"
-            android:hint="Username"/>
+            android:hint="Email"/>
         <EditText
             android:id="@+id/et_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/et_username"
+            app:layout_constraintTop_toBottomOf="@id/et_email"
             android:textSize="16dp"
             android:inputType="textPassword"
             android:hint="Password"/>
         <EditText
-            android:id="@+id/et_first_name"
+            android:id="@+id/et_display_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/et_password"
             android:textSize="16dp"
-            android:hint="First Name"/>
+            android:hint="Display Name"/>
         <EditText
-            android:id="@+id/et_last_name"
+            android:id="@+id/et_phone_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/et_first_name"
+            app:layout_constraintTop_toBottomOf="@id/et_display_name"
             android:textSize="16dp"
-            android:hint="Last Name"/>
-        <EditText
-            android:id="@+id/et_city"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/et_last_name"
-            android:textSize="16dp"
-            android:hint="City"/>
-        <EditText
-            android:id="@+id/et_state"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/et_city"
-            android:textSize="16dp"
-            android:hint="State"/>
+            android:hint="Phone Number"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -68,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_state"
+            app:layout_constraintTop_toBottomOf="@id/et_phone_number"
             android:textSize="16dp"
             android:text="Upload Photo"
             android:onClick="onClickUploadPhoto"/>

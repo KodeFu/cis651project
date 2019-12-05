@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -22,32 +21,44 @@ public class MainActivity extends AppCompatActivity {
 
     private UserRecord userRecord;
 
-    class GetEmailVerified extends AsyncTask<String, Void, UserRecord> {
+    class GetUserRecord extends AsyncTask<String, Void, UserRecord> {
         @Override
         protected UserRecord doInBackground(String... strings) {
             try {
-                UserRecord userRecord = FirebaseAuth.getInstance().getUser(strings[0]);
-                Log.d("debug", "GetEmailVerified Success");
+                UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(strings[0]);
+                Log.d("appdebug", "GetEmailVerified Success");
                 return userRecord;
             } catch (Exception e) {
-                Log.d("debug", "GetEmailVerified Exception: " + e.toString());
+                Log.d("appdebug", "GetEmailVerified Exception: " + e.toString());
             }
             return null;
         }
     }
 
-    class SetEmailVerified extends AsyncTask<String, Void, Boolean> {
+    class SetUserRecord extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... strings) {
             try {
-                Boolean newValue = Boolean.valueOf(strings[0]);
+                String newEmail = strings[0];
+                String newPhone = strings[1];
+                Boolean newVerified = null;
+                if (strings[2] != null) newVerified = Boolean.valueOf(strings[2]);
+                String newName = strings[3];
+                String newPhoto = strings[4];
+                Boolean newDisabled = null;
+                if (strings[5] != null) newDisabled = Boolean.valueOf(strings[5]);
                 UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userRecord.getUid())
-                        .setEmailVerified(newValue);
+                        .setEmail(newEmail)
+                        .setPhoneNumber(newPhone)
+                        .setEmailVerified(newVerified)
+                        .setDisplayName(newName)
+                        .setPhotoUrl(newPhoto)
+                        .setDisabled(newDisabled);
                 UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
-                Log.d("debug", "SetEmailVerified Success");
+                Log.d("appdebug", "SetEmailVerified Success");
                 return true;
             } catch (Exception e) {
-                Log.d("debug", "SetEmailVerified Exception: " + e.toString());
+                Log.d("appdebug", "SetEmailVerified Exception: " + e.toString());
             }
             return false;
         }
@@ -73,47 +84,80 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onClickGetValue(View view) {
+    public void onClickGet(View view) {
         try {
-            EditText etUID = findViewById(R.id.et_uid);
-            GetEmailVerified getEmailVerified = new GetEmailVerified();
-            Log.d("debug", "etUID.getText().toString().trim(): " + etUID.getText().toString().trim());
-            userRecord = getEmailVerified.execute(etUID.getText().toString().trim()).get();
-            TextView textView = findViewById(R.id.tv_current_value);
-            textView.setText("Email = " + String.valueOf(userRecord.getEmail()) + System.getProperty("line.separator") +
-                    "PhoneNumber = " + String.valueOf(userRecord.getPhoneNumber()) + System.getProperty("line.separator") +
-                    "EmailVerified = " + String.valueOf(userRecord.isEmailVerified()) + System.getProperty("line.separator") +
-                    "DisplayName = " + String.valueOf(userRecord.getDisplayName()) + System.getProperty("line.separator") +
-                    "PhotoUrl = " + String.valueOf(userRecord.getPhotoUrl()) + System.getProperty("line.separator") +
-                    "Disabled = " + String.valueOf(userRecord.isDisabled()) + System.getProperty("line.separator")
-            );
+            EditText etEmail = findViewById(R.id.et_email);
+            GetUserRecord getUserRecord = new GetUserRecord();
+            userRecord = getUserRecord.execute(etEmail.getText().toString().trim()).get();
+            etEmail.setText(userRecord.getEmail());
+            EditText etPhone = findViewById(R.id.et_phone);
+            etPhone.setText(userRecord.getPhoneNumber());
+            EditText etVerified = findViewById(R.id.et_verified);
+            etVerified.setText(String.valueOf(userRecord.isEmailVerified()));
+            EditText etName = findViewById(R.id.et_name);
+            etName.setText(userRecord.getDisplayName());
+            EditText etPhoto = findViewById(R.id.et_photo);
+            etPhoto.setText(userRecord.getPhotoUrl());
+            EditText etDisabled = findViewById(R.id.et_disabled);
+            etDisabled.setText(String.valueOf(userRecord.isDisabled()));
+
+            Toast.makeText(this, "Get Profile Successful", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, "onClickGetValue Failure: " + e.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public void onClickSetValue(View view) {
+    public void onClickSet(View view) {
         try {
-            EditText etEmailVerified = findViewById(R.id.et_email_verified);
-            SetEmailVerified setEmailVerified = new SetEmailVerified();
-            if (setEmailVerified.execute(etEmailVerified.getText().toString().trim()).get()) {
-                Toast.makeText(this, "Set Email Verified Successful", Toast.LENGTH_LONG).show();
+            EditText etEmail = findViewById(R.id.et_email);
+            EditText etPhone = findViewById(R.id.et_phone);
+            EditText etVerified = findViewById(R.id.et_verified);
+            EditText etName = findViewById(R.id.et_name);
+            EditText etPhoto = findViewById(R.id.et_photo);
+            EditText etDisabled = findViewById(R.id.et_disabled);
 
-                EditText etUID = findViewById(R.id.et_uid);
-                GetEmailVerified getEmailVerified = new GetEmailVerified();
-                Log.d("debug", "etUID.getText().toString().trim(): " + etUID.getText().toString().trim());
-                userRecord = getEmailVerified.execute(etUID.getText().toString().trim()).get();
-                TextView textView = findViewById(R.id.tv_current_value);
-                textView.setText("Email = " + String.valueOf(userRecord.getEmail()) + System.getProperty("line.separator") +
-                        "PhoneNumber = " + String.valueOf(userRecord.getPhoneNumber()) + System.getProperty("line.separator") +
-                        "EmailVerified = " + String.valueOf(userRecord.isEmailVerified()) + System.getProperty("line.separator") +
-                        "DisplayName = " + String.valueOf(userRecord.getDisplayName()) + System.getProperty("line.separator") +
-                        "PhotoUrl = " + String.valueOf(userRecord.getPhotoUrl()) + System.getProperty("line.separator") +
-                        "Disabled = " + String.valueOf(userRecord.isDisabled()) + System.getProperty("line.separator")
-                );
-            } else {
-                Toast.makeText(this, "Set Email Verified Failed", Toast.LENGTH_LONG).show();
+            String newEmail = null;
+            if (!etEmail.getText().toString().trim().equals("")) {
+                newEmail = etEmail.getText().toString().trim();
             }
+            String newPhone = null;
+            if (!etPhone.getText().toString().trim().equals("")) {
+                newPhone = etPhone.getText().toString().trim();
+            }
+            String newVerified = null;
+            if (!etVerified.getText().toString().trim().equals("")) {
+                newVerified = etVerified.getText().toString().trim();
+            }
+            String newName = null;
+            if (!etName.getText().toString().trim().equals("")) {
+                newName = etName.getText().toString().trim();
+            }
+            String newPhoto = null;
+            if (!etPhoto.getText().toString().trim().equals("")) {
+                newPhoto = etPhoto.getText().toString().trim();
+            }
+            String newDisabled = null;
+            if (!etDisabled.getText().toString().trim().equals("")) {
+                newDisabled = etDisabled.getText().toString().trim();
+            }
+
+            SetUserRecord setUserRecord = new SetUserRecord();
+            String[] strings = {newEmail, newPhone, newVerified, newName, newPhoto, newDisabled};
+            if (!setUserRecord.execute(strings).get()) {
+                Toast.makeText(this, "Set EmailVerified Failed", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            GetUserRecord getUserRecord = new GetUserRecord();
+            userRecord = getUserRecord.execute(etEmail.getText().toString().trim()).get();
+            etEmail.setText(userRecord.getEmail());
+            etPhone.setText(userRecord.getPhoneNumber());
+            etVerified.setText(String.valueOf(userRecord.isEmailVerified()));
+            etName.setText(userRecord.getDisplayName());
+            etPhoto.setText(userRecord.getPhotoUrl());
+            etDisabled.setText(String.valueOf(userRecord.isDisabled()));
+
+            Toast.makeText(this, "Set Profile Successful", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, "onClickSetValue Failure: " + e.toString(), Toast.LENGTH_LONG).show();
         }

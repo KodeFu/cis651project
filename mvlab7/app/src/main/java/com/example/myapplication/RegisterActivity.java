@@ -56,13 +56,14 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void createAccount(String email, String password) {
-        Log.d("debug", "createAccount:" + email);
+        // https://firebase.google.com/docs/auth/android/manage-users
+        Log.d("appdebug", "createAccount:" + email);
         // [START create_user_with_email]
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        Log.d("debug", "createUserWithEmail:success");
+                        Log.d("appdebug", "createUserWithEmail:success");
                         FirebaseUser user = mAuth.getCurrentUser();
                         Toast.makeText(RegisterActivity.this, "Authentication succeeded.",
                                 Toast.LENGTH_SHORT).show();
@@ -72,7 +73,7 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.d("debug", "Failure:"+e.getMessage());
+                        Log.d("appdebug", "Failure:"+e.getMessage());
                         FirebaseUser user = mAuth.getCurrentUser();
                         Toast.makeText(RegisterActivity.this, "Failure:"+e.getMessage(),
                                 Toast.LENGTH_SHORT).show();

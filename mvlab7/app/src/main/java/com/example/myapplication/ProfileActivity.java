@@ -19,6 +19,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     public void onClickSaveProfile(View view) {
+        // https://firebase.google.com/docs/auth/android/manage-users
         Toast.makeText(getApplicationContext(), "onClickSaveProfile",
                 Toast.LENGTH_SHORT).show();
     }

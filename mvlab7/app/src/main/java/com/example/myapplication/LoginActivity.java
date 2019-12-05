@@ -19,6 +19,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,38 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         }
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if(user!=null) {
+                    if(user.isEmailVerified()) {
+                        successfulLogin();
+                    }
+                    else
+                    {
+                        Toast.makeText(LoginActivity.this, "Email is not Verified",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        };
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     public void onClickLogin(View view) {
@@ -64,22 +97,13 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                         @Override
                         public void onSuccess(AuthResult authResult) {
-                            FirebaseUser currentUser = mAuth.getCurrentUser();
-                            if(currentUser.isEmailVerified()) {
-                                Log.d("debug", "onClickSignIn:success");
-                                Toast.makeText(LoginActivity.this, "Sign in succeeded.",
-                                        Toast.LENGTH_SHORT).show();
-                                successfulLogin();
-                            } else {
-                                Toast.makeText(LoginActivity.this, "Email is not Verified",
-                                        Toast.LENGTH_SHORT).show();
-                            }
+                            Log.d("appdebug", "onClickSignIn Success");
                         }
                     })
                     .addOnFailureListener(this, new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.d("debug", "onClickSignIn Failure:" + e.getMessage());
+                            Log.d("appdebug", "onClickSignIn Failure:" + e.getMessage());
                             Toast.makeText(LoginActivity.this, "Sign in failure" + e.getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
@@ -90,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
     public void successfulLogin()
     {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
     }

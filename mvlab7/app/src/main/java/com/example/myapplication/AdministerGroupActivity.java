@@ -185,7 +185,7 @@ public class AdministerGroupActivity extends BaseActivity {
         // Not an admin? see if member of a group
         for (Group g : groups) {
             for (Member m : g.members) {
-                if (m.uid.equals(mAuth.getCurrentUser().getUid())) {
+                if (m.uid.equals(uid)) {
                     g.members.remove(m);
                 }
             }

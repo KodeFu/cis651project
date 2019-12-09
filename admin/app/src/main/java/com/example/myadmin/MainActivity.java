@@ -26,10 +26,10 @@ public class MainActivity extends AppCompatActivity {
         protected UserRecord doInBackground(String... strings) {
             try {
                 UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(strings[0]);
-                Log.d("appdebug", "GetEmailVerified Success");
+                Log.d("appdebug", "GetUserRecord Success");
                 return userRecord;
             } catch (Exception e) {
-                Log.d("appdebug", "GetEmailVerified Exception: " + e.toString());
+                Log.d("appdebug", "GetUserRecord Exception: " + e.toString());
             }
             return null;
         }
@@ -40,25 +40,39 @@ public class MainActivity extends AppCompatActivity {
         protected Boolean doInBackground(String... strings) {
             try {
                 String newEmail = strings[0];
-                String newPhone = strings[1];
+                String newPassword = strings[1];
+                String newPhone = strings[2];
                 Boolean newVerified = null;
-                if (strings[2] != null) newVerified = Boolean.valueOf(strings[2]);
-                String newName = strings[3];
-                String newPhoto = strings[4];
+                if (strings[3] != null) newVerified = Boolean.valueOf(strings[3]);
+                String newName = strings[4];
+                String newPhoto = strings[5];
                 Boolean newDisabled = null;
-                if (strings[5] != null) newDisabled = Boolean.valueOf(strings[5]);
-                UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userRecord.getUid())
-                        .setEmail(newEmail)
-                        .setPhoneNumber(newPhone)
-                        .setEmailVerified(newVerified)
-                        .setDisplayName(newName)
-                        .setPhotoUrl(newPhoto)
-                        .setDisabled(newDisabled);
-                UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
-                Log.d("appdebug", "SetEmailVerified Success");
+                if (strings[6] != null) newDisabled = Boolean.valueOf(strings[6]);
+                if (newPassword != null) {
+                    UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userRecord.getUid())
+                            .setEmail(newEmail)
+                            .setPassword(newPassword)
+                            .setPhoneNumber(newPhone)
+                            .setEmailVerified(newVerified)
+                            .setDisplayName(newName)
+                            .setPhotoUrl(newPhoto)
+                            .setDisabled(newDisabled);
+                    UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
+                    Log.d("appdebug", "SetUserRecord Success");
+                } else {
+                    UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userRecord.getUid())
+                            .setEmail(newEmail)
+                            .setPhoneNumber(newPhone)
+                            .setEmailVerified(newVerified)
+                            .setDisplayName(newName)
+                            .setPhotoUrl(newPhoto)
+                            .setDisabled(newDisabled);
+                    UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
+                    Log.d("appdebug", "SetUserRecord Success");
+                }
                 return true;
             } catch (Exception e) {
-                Log.d("appdebug", "SetEmailVerified Exception: " + e.toString());
+                Log.d("appdebug", "SetUserRecord Exception: " + e.toString());
             }
             return false;
         }
@@ -75,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl("https://family-budget-df281.firebaseio.com")
+                    .setDatabaseUrl("https://thingstodo-28b64.firebaseio.com")
                     .build();
 
             FirebaseApp.initializeApp(options);
@@ -90,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
             GetUserRecord getUserRecord = new GetUserRecord();
             userRecord = getUserRecord.execute(etEmail.getText().toString().trim()).get();
             etEmail.setText(userRecord.getEmail());
+            EditText etPassword = findViewById(R.id.et_password);
+            etPassword.setText(null);
             EditText etPhone = findViewById(R.id.et_phone);
             etPhone.setText(userRecord.getPhoneNumber());
             EditText etVerified = findViewById(R.id.et_verified);
@@ -110,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
     public void onClickSet(View view) {
         try {
             EditText etEmail = findViewById(R.id.et_email);
+            EditText etPassword = findViewById(R.id.et_password);
             EditText etPhone = findViewById(R.id.et_phone);
             EditText etVerified = findViewById(R.id.et_verified);
             EditText etName = findViewById(R.id.et_name);
@@ -119,6 +136,10 @@ public class MainActivity extends AppCompatActivity {
             String newEmail = null;
             if (!etEmail.getText().toString().trim().equals("")) {
                 newEmail = etEmail.getText().toString().trim();
+            }
+            String newPassword = null;
+            if (!etPassword.getText().toString().trim().equals("")) {
+                newPassword = etPassword.getText().toString().trim();
             }
             String newPhone = null;
             if (!etPhone.getText().toString().trim().equals("")) {
@@ -142,15 +163,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
             SetUserRecord setUserRecord = new SetUserRecord();
-            String[] strings = {newEmail, newPhone, newVerified, newName, newPhoto, newDisabled};
+            String[] strings = {newEmail, newPassword, newPhone, newVerified, newName, newPhoto, newDisabled};
             if (!setUserRecord.execute(strings).get()) {
-                Toast.makeText(this, "Set EmailVerified Failed", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Set Profile Failed", Toast.LENGTH_LONG).show();
                 return;
             }
 
             GetUserRecord getUserRecord = new GetUserRecord();
             userRecord = getUserRecord.execute(etEmail.getText().toString().trim()).get();
             etEmail.setText(userRecord.getEmail());
+            etPassword.setText(null);
             etPhone.setText(userRecord.getPhoneNumber());
             etVerified.setText(String.valueOf(userRecord.isEmailVerified()));
             etName.setText(userRecord.getDisplayName());

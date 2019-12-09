@@ -148,11 +148,13 @@ public class AdministerGroupActivity extends BaseActivity {
     {
         String myGroupName = getGroupName(groups);
 
+/*
         for (Group g : groups) {
             if ( g.name.equals(myGroupName) ) {
                 return g.members;
             }
         }
+*/
 
         ArrayList<Member> emptyList = new ArrayList<Member>();
         return emptyList;
@@ -161,13 +163,16 @@ public class AdministerGroupActivity extends BaseActivity {
     String getGroupName(List<Group> groups)
     {
         // If admin of a group, return that
+/*
         for (Group g : groups) {
             if ( g.adminUID.equals(mAuth.getCurrentUser().getUid()) ) {
                 return g.name;
             }
         }
+*/
 
         // Not an admin? see if member of a group
+/*
         for (Group g : groups) {
             for (Member m : g.members) {
                 if (m.uid.equals(mAuth.getCurrentUser().getUid())) {
@@ -175,6 +180,7 @@ public class AdministerGroupActivity extends BaseActivity {
                 }
             }
         }
+*/
 
         // Not an admin or member, so not part of a group
         return "";
@@ -183,6 +189,7 @@ public class AdministerGroupActivity extends BaseActivity {
     void removeMember(List<Group> groups, String uid)
     {
         // Not an admin? see if member of a group
+/*
         for (Group g : groups) {
             for (Member m : g.members) {
                 if (m.uid.equals(uid)) {
@@ -190,6 +197,7 @@ public class AdministerGroupActivity extends BaseActivity {
                 }
             }
         }
+*/
 
         // Add groups node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();

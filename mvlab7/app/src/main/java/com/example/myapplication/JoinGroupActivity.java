@@ -111,6 +111,7 @@ public class JoinGroupActivity extends BaseActivity {
 
     public void addMemberToGroup(List<Group> groups, String token)
     {
+/*
         for (Group g : groups) {
             if ( g.token.equals(token) ) {
 
@@ -130,6 +131,7 @@ public class JoinGroupActivity extends BaseActivity {
                 g.members.add(m);
             }
         }
+*/
 
         // Add groups node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();

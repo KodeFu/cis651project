@@ -8,21 +8,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import org.w3c.dom.Text;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 
 public class CreateGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
@@ -41,15 +39,9 @@ public class CreateGroupActivity extends BaseActivity {
         groupName = findViewById(R.id.group_name);
         token = findViewById(R.id.token);
 
-        groupsRef.addChildEventListener(new ChildEventListener() {
+        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //Log.d("appdebug", "onChildAdded: start");
                 //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
                 //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
@@ -58,6 +50,7 @@ public class CreateGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
+                    g.token = child;
                     groupsList.add(g);
 
                     Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
@@ -65,61 +58,11 @@ public class CreateGroupActivity extends BaseActivity {
 
                 updateUI();
                 //Log.d("appdebug", "onChildAdded: end");
-
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                Log.d("appdebug","onChildChanged");
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
-                groupsList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
-
-                    Log.d("appdebug", "onChildChanged: " + child + " " + ds.getValue());
-                }
-
-                updateUI();
-                //Log.d("appdebug", "onChildChanged: end");
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                Log.d("appdebug","onChildRemoved");
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
-                groupsList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
-
-                    Log.d("appdebug", "onChildRemoved: " + child + " " + ds.getValue());
-                }
-
-                updateUI();
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                Log.d("appdebug","onChildMoved");
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.d("appdebug", "onCancelled");
+
             }
         });
 
@@ -152,40 +95,36 @@ public class CreateGroupActivity extends BaseActivity {
         }
 
         Group g = new Group();
-        Member m = new Member();
         Category c = new Category();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String currentUid = currentUser.getUid();
+        String currentName = currentUser.getDisplayName();
 
         // Group info
         g.name = name;
-        g.adminUID = mAuth.getCurrentUser().getUid();
-        Random rand = new Random();
-        g.token = Integer.toString(rand.nextInt(10000));
+        g.adminUid = currentUid;
 
         // Member info
-        g.members = new ArrayList<Member>();
-        m.uid = mAuth.getCurrentUser().getUid();
-        m.name = mAuth.getCurrentUser().getDisplayName();
-        g.members.add(m);
+        g.members = new HashMap<String, String>();
+        g.members.put(currentUid, "enabled");
 
         // Category info
-        g.categories = new ArrayList<Category>();
-        c.name = mAuth.getCurrentUser().getUid();
-        c.limit = -1;
-        g.categories.add(c);
-
-        groups.add(g);
+        g.categories = new HashMap<String, Category>();
+        g.categories.put(currentUid, new Category(currentUid, currentName, -1));
 
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
         DatabaseReference groupsRef =  mRootReference.child("groups");
-        groupsRef.setValue(groups);
+        String key = groupsRef.push().getKey();
+        groupsRef.child(key).setValue(g);
     }
 
     String getGroupToken(List<Group> groups)
     {
         // Only admin can see token; verbally conveyed to users
         for (Group g : groups) {
-            if ( g.adminUID.equals(mAuth.getCurrentUser().getUid()) ) {
+            if ( g.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
                 return g.token;
             }
         }
@@ -197,15 +136,15 @@ public class CreateGroupActivity extends BaseActivity {
         {
         // If admin of a group, return that
         for (Group g : groups) {
-            if ( g.adminUID.equals(mAuth.getCurrentUser().getUid()) ) {
+            if ( g.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
                 return g.name;
             }
         }
 
         // Not an admin? see if member of a group
         for (Group g : groups) {
-            for (Member m : g.members) {
-                if (m.uid.equals(mAuth.getCurrentUser().getUid())) {
+            for (Map.Entry me : g.members.entrySet()) {
+                if (me.getKey().equals(mAuth.getCurrentUser().getUid())) {
                     return g.name;
                 }
             }
@@ -221,14 +160,14 @@ public class CreateGroupActivity extends BaseActivity {
 
         for (Group g : groups) {
             if ( g.name.equals(myGroupName) ) {
-                return g.adminUID;
+                return g.adminUid;
             }
         }
 
         return "";
     }
 
-    List<Member> getMembers(List<Group> groups)
+    Map<String, String> getMembers(List<Group> groups)
     {
         String myGroupName = getGroupName(groups);
 
@@ -238,11 +177,10 @@ public class CreateGroupActivity extends BaseActivity {
             }
         }
 
-        ArrayList<Member> emptyList = new ArrayList<Member>();
-        return emptyList;
+        return new HashMap<String, String>();
     }
 
-    List<Category> getCategories(List<Group> groups)
+    public Map<String, Category> getCategories(List<Group> groups)
     {
         String myGroupName = getGroupName(groups);
 
@@ -252,8 +190,7 @@ public class CreateGroupActivity extends BaseActivity {
             }
         }
 
-        ArrayList<Category> emptyList = new ArrayList<Category>();
-        return emptyList;
+        return new HashMap<String, Category>();
     }
 
 }

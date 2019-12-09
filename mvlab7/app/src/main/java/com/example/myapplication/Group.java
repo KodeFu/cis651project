@@ -1,11 +1,17 @@
 package com.example.myapplication;
 
-import java.util.List;
+import com.google.firebase.database.Exclude;
+
+import java.util.Map;
 
 public class Group {
-    public String name;                // name of group
-    public String token;               // random group id
-    public String adminUID;            // UID of admin
-    public List<Member> members;       // UIDs of members
-    public List<Category> categories;  // Categories and limits
+    @Exclude
+    public String token;
+
+    public String adminUid;
+    public Map<String, Category> categories;
+    public String name;
+    public Map<String, String> members;
+
+    public Group() {}
 }

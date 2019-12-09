@@ -108,6 +108,8 @@ public class CreateGroupActivity extends BaseActivity {
 
                     Log.d("appdebug", "onChildRemoved: " + child + " " + ds.getValue());
                 }
+
+                updateUI();
             }
 
             @Override
@@ -162,6 +164,7 @@ public class CreateGroupActivity extends BaseActivity {
         // Member info
         g.members = new ArrayList<Member>();
         m.uid = mAuth.getCurrentUser().getUid();
+        m.name = mAuth.getCurrentUser().getDisplayName();
         g.members.add(m);
 
         // Category info
@@ -235,7 +238,8 @@ public class CreateGroupActivity extends BaseActivity {
             }
         }
 
-        return null;
+        ArrayList<Member> emptyList = new ArrayList<Member>();
+        return emptyList;
     }
 
     List<Category> getCategories(List<Group> groups)
@@ -248,7 +252,8 @@ public class CreateGroupActivity extends BaseActivity {
             }
         }
 
-        return null;
+        ArrayList<Category> emptyList = new ArrayList<Category>();
+        return emptyList;
     }
 
 }

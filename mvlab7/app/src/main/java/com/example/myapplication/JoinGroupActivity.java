@@ -126,6 +126,7 @@ public class JoinGroupActivity extends BaseActivity {
                 // Add user
                 Member m = new Member();
                 m.uid = mAuth.getCurrentUser().getUid();
+                m.name = mAuth.getCurrentUser().getDisplayName();
                 g.members.add(m);
             }
         }

@@ -40,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if(currentUser!=null) {
+/*
             if(currentUser.isEmailVerified()) {
                 successfulLogin();
             }
@@ -48,6 +49,8 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "Email is not Verified",
                         Toast.LENGTH_SHORT).show();
             }
+*/
+            successfulLogin();
         }
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -56,6 +59,7 @@ public class LoginActivity extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
 
                 if(user!=null) {
+/*
                     if(user.isEmailVerified()) {
                         successfulLogin();
                     }
@@ -64,6 +68,8 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this, "Email is not Verified",
                                 Toast.LENGTH_SHORT).show();
                     }
+*/
+                    successfulLogin();
                 }
             }
         };

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class CreateGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
@@ -116,8 +117,9 @@ public class CreateGroupActivity extends BaseActivity {
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
         DatabaseReference groupsRef =  mRootReference.child("groups");
-        String key = groupsRef.push().getKey();
-        groupsRef.child(key).setValue(g);
+        Random rand = new Random();
+        g.token = Integer.toString(rand.nextInt(1000000));
+        groupsRef.child(g.token).setValue(g);
     }
 
     String getGroupToken(List<Group> groups)

@@ -19,13 +19,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdministerGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
     DatabaseReference groupsRef =  mRootReference;
-    List<Group> groupsList = new ArrayList<Group>();
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
     String[] categories = { "Clothing", "Groceries", "Dining", "Ride Share", "Entertainment", "Gifts", "Fuel / Gas", "Automobile", "Home Improvement", "Credit Cards"};
     ArrayList<String> membersList = new ArrayList<String>();
     ArrayAdapter adapterMembersList;
@@ -62,7 +63,8 @@ public class AdministerGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
                 }
@@ -83,7 +85,8 @@ public class AdministerGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildChanged: " + child + " " + ds.getValue());
                 }
@@ -104,7 +107,8 @@ public class AdministerGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildRemoved: " + child + " " + ds.getValue());
                 }
@@ -133,76 +137,77 @@ public class AdministerGroupActivity extends BaseActivity {
         EditText groupName = findViewById(R.id.group_name);
         groupName.setText(getGroupName(groupsList));
 
-        List<Member> groupMemberList = getMembers(groupsList);
+        Map<String, Member> groupMemberList = getMembers(groupsList);
         membersList.clear();
 
-        for (Member m: groupMemberList) {
-            membersList.add(m.name);
+        for (Map.Entry m : groupMemberList.entrySet()) {
+            membersList.add(((Member)m.getValue()).displayName);
         }
         Spinner m = findViewById(R.id.members);
         adapterMembersList.notifyDataSetChanged();
 
     }
 
-    List<Member> getMembers(List<Group> groups)
+    Map<String, Member> getMembers(HashMap<String, Group> groups)
     {
         String myGroupName = getGroupName(groups);
 
-/*
-        for (Group g : groups) {
-            if ( g.name.equals(myGroupName) ) {
-                return g.members;
+        for (Map.Entry g : groups.entrySet()) {
+            if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                return ((Group)g.getValue()).members;
             }
         }
-*/
 
-        ArrayList<Member> emptyList = new ArrayList<Member>();
-        return emptyList;
+        return new HashMap<String, Member>();
     }
 
-    String getGroupName(List<Group> groups)
+    String getGroupName(HashMap<String, Group> groups)
     {
         // If admin of a group, return that
-/*
-        for (Group g : groups) {
-            if ( g.adminUID.equals(mAuth.getCurrentUser().getUid()) ) {
-                return g.name;
+        for (Map.Entry  g : groups.entrySet()) {
+            if (((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+                return ((Group)g.getValue()).name;
             }
         }
-*/
 
         // Not an admin? see if member of a group
-/*
-        for (Group g : groups) {
-            for (Member m : g.members) {
-                if (m.uid.equals(mAuth.getCurrentUser().getUid())) {
-                    return g.name;
+        for (Map.Entry g : groups.entrySet()) {
+            for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
+                if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
+                    return ((Group)g.getValue()).name;
                 }
             }
         }
-*/
 
         // Not an admin or member, so not part of a group
         return "";
     }
 
-    void removeMember(List<Group> groups, String uid)
+    void removeMember(HashMap<String, Group> groups, String uid)
     {
         // Not an admin? see if member of a group
-/*
-        for (Group g : groups) {
-            for (Member m : g.members) {
-                if (m.uid.equals(uid)) {
-                    g.members.remove(m);
+        Group groupContainingMember = null;
+        String memberToRemove = null;
+        for (Map.Entry g : groups.entrySet()) {
+            for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
+                if (m.getKey().equals(uid)) {
+                    groupContainingMember = ((Group)g.getValue());
+                    memberToRemove = m.getKey().toString();
                 }
             }
         }
-*/
 
-        // Add groups node
-        DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference groupsRef =  mRootReference.child("groups");
-        groupsRef.setValue(groups);
+        if (groupContainingMember != null && memberToRemove != null) {
+            groupContainingMember.members.remove(memberToRemove);
+
+            // Add groups node
+            DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference groupsRef =  mRootReference.child("groups");
+            groupsRef.setValue(groups);
+        } else {
+            Toast.makeText(getApplicationContext(), "Unable to remove member",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onClickGroupDelete(View view) {
@@ -233,11 +238,11 @@ public class AdministerGroupActivity extends BaseActivity {
 
         Log.d("appdebug", "onClickMemberRemove: " + selectedItem);
 
-        List<Member> groupMemberList = getMembers(groupsList);
+        Map<String, Member> groupMemberList = getMembers(groupsList);
 
-        for (Member m: groupMemberList) {
-            if (m.name.equals(selectedItem)) {
-                uid = m.uid;
+        for (Map.Entry m : groupMemberList.entrySet()) {
+            if (((Member)m.getValue()).displayName.equals(selectedItem)) {
+                uid = m.getKey().toString();
             }
         }
 

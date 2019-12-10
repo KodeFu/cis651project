@@ -16,14 +16,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JoinGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
     DatabaseReference groupsRef =  mRootReference;
-    List<Group> groupsList = new ArrayList<Group>();
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
     EditText token;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +49,8 @@ public class JoinGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
                 }
@@ -68,7 +69,8 @@ public class JoinGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildChanged: " + child + " " + ds.getValue());
                 }
@@ -87,7 +89,8 @@ public class JoinGroupActivity extends BaseActivity {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
-                    groupsList.add(g);
+                    g.token = child;
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildRemoved: " + child + " " + ds.getValue());
                 }
@@ -109,14 +112,13 @@ public class JoinGroupActivity extends BaseActivity {
         addMemberToGroup(groupsList, token.getText().toString());
     }
 
-    public void addMemberToGroup(List<Group> groups, String token)
+    public void addMemberToGroup(HashMap<String, Group> groups, String token)
     {
-/*
-        for (Group g : groups) {
-            if ( g.token.equals(token) ) {
+        for (Map.Entry g : groups.entrySet()) {
+            if ( g.getKey().equals(token) ) {
 
-                for (Member m : g.members) {
-                    if (m.uid.equals(mAuth.getCurrentUser().getUid())) {
+                for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
+                    if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
                         // User already added
                         Toast.makeText(getApplicationContext(), "Already part of this group.",
                                 Toast.LENGTH_SHORT).show();
@@ -127,11 +129,10 @@ public class JoinGroupActivity extends BaseActivity {
                 // Add user
                 Member m = new Member();
                 m.uid = mAuth.getCurrentUser().getUid();
-                m.name = mAuth.getCurrentUser().getDisplayName();
-                g.members.add(m);
+                m.displayName = mAuth.getCurrentUser().getDisplayName();
+                ((Group)g.getValue()).members.put(m.uid, m);
             }
         }
-*/
 
         // Add groups node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();

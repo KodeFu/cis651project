@@ -6,16 +6,12 @@ public class Member {
     @Exclude
     public String uid;
 
-    @Exclude
-    public String name;
-
-    public Boolean enabled;
+    public String displayName;
 
     public Member() {}
 
-    public Member(String uid, String name, Boolean enabled) {
+    public Member(String uid, String displayName) {
         this.uid = uid;
-        this.name = name;
-        this.enabled = enabled;
+        this.displayName = displayName;
     }
 }

@@ -1,10 +1,14 @@
 package com.example.myapplication;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.Map;
 
 public class Spending {
-    public Map<String, Integer> monthTotals;
-    public Map <String, Receipt> receipts;
+    @Exclude
+    public String token;
+
+    public Map <String, Map <String, Map <String, Map <String, Receipt> > > > receipts;
 
     public Spending() {}
 }

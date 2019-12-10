@@ -63,7 +63,7 @@ public class CreateGroupActivity extends BaseActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("appdebug", "onCancelled");
             }
         });
 
@@ -107,8 +107,8 @@ public class CreateGroupActivity extends BaseActivity {
         g.adminUid = currentUid;
 
         // Member info
-        g.members = new HashMap<String, String>();
-        g.members.put(currentUid, "enabled");
+        g.members = new HashMap<String, Member>();
+        g.members.put(currentUid, new Member(currentUid, currentName));
 
         // Category info
         g.categories = new HashMap<String, Category>();
@@ -145,8 +145,8 @@ public class CreateGroupActivity extends BaseActivity {
 
         // Not an admin? see if member of a group
         for (Group g : groups) {
-            for (Map.Entry me : g.members.entrySet()) {
-                if (me.getKey().equals(mAuth.getCurrentUser().getUid())) {
+            for (Map.Entry m : g.members.entrySet()) {
+                if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
                     return g.name;
                 }
             }
@@ -169,7 +169,7 @@ public class CreateGroupActivity extends BaseActivity {
         return "";
     }
 
-    Map<String, String> getMembers(List<Group> groups)
+    Map<String, Member> getMembers(List<Group> groups)
     {
         String myGroupName = getGroupName(groups);
 
@@ -179,7 +179,7 @@ public class CreateGroupActivity extends BaseActivity {
             }
         }
 
-        return new HashMap<String, String>();
+        return new HashMap<String, Member>();
     }
 
     public Map<String, Category> getCategories(List<Group> groups)

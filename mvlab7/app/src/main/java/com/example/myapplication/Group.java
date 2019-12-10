@@ -11,7 +11,7 @@ public class Group {
     public String adminUid;
     public Map<String, Category> categories;
     public String name;
-    public Map<String, String> members;
+    public Map<String, Member> members;
 
     public Group() {}
 }

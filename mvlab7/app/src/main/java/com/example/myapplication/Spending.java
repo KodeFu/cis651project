@@ -8,7 +8,7 @@ public class Spending {
     @Exclude
     public String token;
 
-    public Map <String, Map <String, Map <String, Map <String, Receipt> > > > receipts;
+    public Map<String, Map<String, MonthlyReceipts> > receipts;
 
     public Spending() {}
 }

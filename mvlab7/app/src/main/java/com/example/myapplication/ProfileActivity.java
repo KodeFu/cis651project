@@ -111,58 +111,85 @@ public class ProfileActivity extends BaseActivity {
 
     public void onClickSaveProfile(View view) {
         // https://firebase.google.com/docs/auth/android/manage-users
-        String path="images/"+ UUID.randomUUID()+".jpg";
-        final StorageReference imageRef = storage.getReference(path);
-        UploadTask uploadTask=imageRef.putBytes(profilePhotoByteArray);
+        if (profilePhotoByteArray != null) {
+            String path="images/"+ UUID.randomUUID()+".jpg";
+            final StorageReference imageRef = storage.getReference(path);
+            UploadTask uploadTask=imageRef.putBytes(profilePhotoByteArray);
 
-        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-            @Override
-            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                if (!task.isSuccessful()) {
-                    throw task.getException();
-                }
-
-                // Continue with the task to get the download URL
-                return imageRef.getDownloadUrl();
-            }
-        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-            @Override
-            public void onComplete(@NonNull Task<Uri> task) {
-                if (task.isSuccessful()) {
-                    Uri downloadUri = task.getResult();
-                    Log.d("appdebug", downloadUri.toString());
-
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user!=null) {
-                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(displayName.getText().toString())
-                                .setPhotoUri(downloadUri)
-                                .build();
-
-                        user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ProfileActivity.this, "Profile save successful",
-                                            Toast.LENGTH_SHORT).show();
-                                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                    displayName.setText(user.getDisplayName());
-                                }
-                                else
-                                {
-                                    Toast.makeText(ProfileActivity.this, "Profile save failure",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
                     }
-                } else {
-                    // Handle failures
-                    Toast.makeText(ProfileActivity.this, "Photo upload failed",
-                            Toast.LENGTH_SHORT).show();
+
+                    // Continue with the task to get the download URL
+                    return imageRef.getDownloadUrl();
                 }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        Uri downloadUri = task.getResult();
+                        Log.d("appdebug", downloadUri.toString());
+
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        if (user!=null) {
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(displayName.getText().toString())
+                                    .setPhotoUri(downloadUri)
+                                    .build();
+
+                            user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(ProfileActivity.this, "Profile save successful",
+                                                Toast.LENGTH_SHORT).show();
+                                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                        displayName.setText(user.getDisplayName());
+                                    }
+                                    else
+                                    {
+                                        Toast.makeText(ProfileActivity.this, "Profile save failure",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        // Handle failures
+                        Toast.makeText(ProfileActivity.this, "Photo upload failed",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } else {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user!=null) {
+                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                        .setDisplayName(displayName.getText().toString())
+                        .setPhotoUri(null)
+                        .build();
+
+                user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ProfileActivity.this, "Profile save successful",
+                                    Toast.LENGTH_SHORT).show();
+                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            displayName.setText(user.getDisplayName());
+                        }
+                        else
+                        {
+                            Toast.makeText(ProfileActivity.this, "Profile save failure",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
-        });
+        }
     }
 
     final static class WorkerDownloadImage extends AsyncTask<String, String, Bitmap> {

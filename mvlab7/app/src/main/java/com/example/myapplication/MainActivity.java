@@ -42,7 +42,7 @@ public class MainActivity extends BaseActivity {
                 u.uid = dataSnapshot.getKey();
                 Log.d("appdebug", "User query success");
 
-                if (u.group != null && !u.group.isEmpty()) {
+                /*if (u.group != null && !u.group.isEmpty()) {
                     DatabaseReference spendingRef = rootRef.child("spending/" + u.group);
                     spendingRef.addValueEventListener(new ValueEventListener() {
                         @Override
@@ -54,15 +54,15 @@ public class MainActivity extends BaseActivity {
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                            Log.d("appdebug", "onCancelled");
                         }
                     });
-                }
+                }*/
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("appdebug", "onCancelled");
             }
         });
 

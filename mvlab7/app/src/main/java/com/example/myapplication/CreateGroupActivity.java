@@ -80,32 +80,4 @@ public class CreateGroupActivity extends BaseActivity {
         GroupsHelper.createGroup(groupsList, groupName.getText().toString());
     }
 
-
-
-    Map<String, Member> getMembers(List<Group> groups)
-    {
-        String myGroupName = GroupsHelper.getGroupName(groupsList);
-
-        for (Group g : groups) {
-            if ( g.name.equals(myGroupName) ) {
-                return g.members;
-            }
-        }
-
-        return new HashMap<String, Member>();
-    }
-
-    public Map<String, Category> getCategories(List<Group> groups)
-    {
-        String myGroupName = GroupsHelper.getGroupName(groupsList);
-
-        for (Group g : groups) {
-            if ( g.name.equals(myGroupName) ) {
-                return g.categories;
-            }
-        }
-
-        return new HashMap<String, Category>();
-    }
-
 }

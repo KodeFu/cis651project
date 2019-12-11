@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -8,6 +9,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,18 +17,48 @@ import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
 
 public class BaseActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
     private FirebaseAuth mAuth;
+    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
+    DatabaseReference groupsRef =  mRootReference;
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mAuth = FirebaseAuth.getInstance();
+
+        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                groupsList.clear();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String child = ds.getKey();
+                    Group g = ds.getValue(Group.class);
+                    g.token = child;
+                    groupsList.put(child, g);
+
+                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("appdebug", "onCancelled");
+            }
+        });
     }
 
 
@@ -99,7 +131,8 @@ public class BaseActivity extends AppCompatActivity
                 startActivity(new Intent(this, JoinGroupActivity.class));
                 break;
             case R.id.leave_group:
-                Toast.makeText(getApplicationContext(), "Leave Group",
+                GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid());
+                Toast.makeText(getApplicationContext(), "Leaving Group",
                         Toast.LENGTH_SHORT).show();
                 break;
             case R.id.submit_receipt:

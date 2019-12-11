@@ -75,9 +75,9 @@ public class AdministerGroupActivity extends BaseActivity {
         Log.d("appdebug", "updateUI: ");
 
         EditText groupName = findViewById(R.id.group_name);
-        groupName.setText(getGroupName(groupsList));
+        groupName.setText(GroupsHelper.getGroupName(groupsList));
 
-        Map<String, Member> groupMemberList = getMembers(groupsList);
+        Map<String, Member> groupMemberList = GroupsHelper.getMembers(groupsList);
         membersList.clear();
 
         for (Map.Entry m : groupMemberList.entrySet()) {
@@ -86,41 +86,6 @@ public class AdministerGroupActivity extends BaseActivity {
         Spinner m = findViewById(R.id.members);
         adapterMembersList.notifyDataSetChanged();
 
-    }
-
-    Map<String, Member> getMembers(HashMap<String, Group> groups)
-    {
-        String myGroupName = getGroupName(groups);
-
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                return ((Group)g.getValue()).members;
-            }
-        }
-
-        return new HashMap<String, Member>();
-    }
-
-    String getGroupName(HashMap<String, Group> groups)
-    {
-        // If admin of a group, return that
-        for (Map.Entry  g : groups.entrySet()) {
-            if (((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                return ((Group)g.getValue()).name;
-            }
-        }
-
-        // Not an admin? see if member of a group
-        for (Map.Entry g : groups.entrySet()) {
-            for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
-                if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
-                    return ((Group)g.getValue()).name;
-                }
-            }
-        }
-
-        // Not an admin or member, so not part of a group
-        return "";
     }
 
     public void onClickGroupDelete(View view) {
@@ -151,7 +116,7 @@ public class AdministerGroupActivity extends BaseActivity {
 
         Log.d("appdebug", "onClickMemberRemove: " + selectedItem);
 
-        Map<String, Member> groupMemberList = getMembers(groupsList);
+        Map<String, Member> groupMemberList = GroupsHelper.getMembers(groupsList);
 
         for (Map.Entry m : groupMemberList.entrySet()) {
             if (((Member)m.getValue()).displayName.equals(selectedItem)) {

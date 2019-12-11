@@ -8,6 +8,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -105,6 +106,19 @@ public class GroupsHelper {
         return "";
     }
 
+    static Map<String, Member> getMembers(HashMap<String, Group> groups)
+    {
+        String myGroupName = GroupsHelper.getGroupName(groups);
+
+        for (Map.Entry g : groups.entrySet()) {
+            if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                return ((Group)g.getValue()).members;
+            }
+        }
+
+        return new HashMap<String, Member>();
+    }
+
     static void removeMember(HashMap<String, Group> groups, String uid)
     {
         // Not an admin? see if member of a group
@@ -131,4 +145,18 @@ public class GroupsHelper {
             //        Toast.LENGTH_SHORT).show();
         }
     }
+
+    /*
+    public Map<String, Category> getCategories(List<Group> groups)
+    {
+        String myGroupName = GroupsHelper.getGroupName(groupsList);
+
+        for (Group g : groups) {
+            if ( g.name.equals(myGroupName) ) {
+                return g.categories;
+            }
+        }
+
+        return new HashMap<String, Category>();
+    }*/
 }

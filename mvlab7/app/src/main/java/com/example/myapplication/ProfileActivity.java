@@ -44,7 +44,7 @@ public class ProfileActivity extends BaseActivity {
         if (user!=null) {
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(displayName.getText().toString())
-                    .setPhotoUri(Uri.parse("http://example.com/supercontra.jpg"))
+                    .setPhotoUri(Uri.parse(urlForPicture))
                     .build();
 
             user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {

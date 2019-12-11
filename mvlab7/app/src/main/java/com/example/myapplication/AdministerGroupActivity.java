@@ -17,6 +17,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,15 +47,9 @@ public class AdministerGroupActivity extends BaseActivity {
         Spinner category = (Spinner) findViewById(R.id.category);
         category.setAdapter(adapter);
 
-        groupsRef.addChildEventListener(new ChildEventListener() {
+        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //Log.d("appdebug", "onChildAdded: start");
                 //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
                 //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
@@ -70,55 +65,7 @@ public class AdministerGroupActivity extends BaseActivity {
                 }
 
                 updateUI();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                Log.d("appdebug","onChildChanged");
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
-                groupsList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    Group g = ds.getValue(Group.class);
-                    g.token = child;
-                    groupsList.put(child, g);
-
-                    Log.d("appdebug", "onChildChanged: " + child + " " + ds.getValue());
-                }
-
-                updateUI();
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                Log.d("appdebug","onChildRemoved");
-
-                if (!dataSnapshot.getKey().equals("groups")) {
-                    // Ignore nodes other than groups
-                    return;
-                }
-
-                groupsList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    Group g = ds.getValue(Group.class);
-                    g.token = child;
-                    groupsList.put(child, g);
-
-                    Log.d("appdebug", "onChildRemoved: " + child + " " + ds.getValue());
-                }
-
-                updateUI();
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                Log.d("appdebug","onChildMoved");
+                //Log.d("appdebug", "onChildAdded: end");
             }
 
             @Override
@@ -126,8 +73,6 @@ public class AdministerGroupActivity extends BaseActivity {
                 Log.d("appdebug", "onCancelled");
             }
         });
-
-
     }
 
     public void updateUI()

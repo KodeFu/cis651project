@@ -27,8 +27,8 @@ public class AdministerCategoryActivity extends BaseActivity {
     DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
     DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
-    String[] categories = { "Clothing", "Groceries", "Dining", "Ride Share", "Entertainment", "Gifts", "Fuel / Gas", "Automobile", "Home Improvement", "Credit Cards"};
-    ArrayAdapter adapterMembersList;
+    ArrayList<String> categoryList = new ArrayList<String>();
+    ArrayAdapter adapterCategoriesList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,9 +37,9 @@ public class AdministerCategoryActivity extends BaseActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categories);
+        adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
         Spinner category = (Spinner) findViewById(R.id.category);
-        category.setAdapter(adapter);
+        category.setAdapter(adapterCategoriesList);
 
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
@@ -67,34 +67,48 @@ public class AdministerCategoryActivity extends BaseActivity {
     public void updateUI()
     {
         Log.d("appdebug", "updateUI: ");
-/*
-        EditText groupName = findViewById(R.id.group_name);
-        groupName.setText(GroupsHelper.getGroupName(groupsList));
 
-        Map<String, Member> groupMemberList = GroupsHelper.getMembers(groupsList);
-        membersList.clear();
+        Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
+        categoryList.clear();
 
-        for (Map.Entry m : groupMemberList.entrySet()) {
-            membersList.add(((Member)m.getValue()).displayName);
+        for (Map.Entry m : groupCategoryList.entrySet()) {
+            categoryList.add(((Category)m.getValue()).displayName);
         }
-        Spinner m = findViewById(R.id.members);
-        adapterMembersList.notifyDataSetChanged();
- */
+        Spinner m = findViewById(R.id.category);
+        adapterCategoriesList.notifyDataSetChanged();
+    }
+
+    public void onClickCategoryAdd(View view) {
+        Toast.makeText(getApplicationContext(), "onClickCategoryAdd",
+                Toast.LENGTH_SHORT).show();
     }
 
     public void onClickCategoryDelete(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryDelete",
-                Toast.LENGTH_SHORT).show();
+        String categoryName = "";
+        Spinner categorySpinner = findViewById(R.id.category);
+        String selectedItem = categorySpinner.getSelectedItem().toString();
+
+        Log.d("appdebug", "onClickCategoryDelete: " + selectedItem);
+
+        Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
+
+        for (Map.Entry m : groupCategoryList.entrySet()) {
+            if (((Category)m.getValue()).displayName.equals(selectedItem)) {
+                categoryName = m.getKey().toString();
+            }
+        }
+
+        if (!categoryName.equals("")) {
+            GroupsHelper.removeCategory(groupsList, categoryName);
+
+            //membersList.remove()
+        }
+
+        adapterCategoriesList.notifyDataSetChanged();
     }
 
     public void onClickCategoryUpdate(View view) {
         Toast.makeText(getApplicationContext(), "onClickCategoryUpdate",
-                Toast.LENGTH_SHORT).show();
-    }
-
-
-    public void onClickCategoryAdd(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryAdd",
                 Toast.LENGTH_SHORT).show();
     }
 }

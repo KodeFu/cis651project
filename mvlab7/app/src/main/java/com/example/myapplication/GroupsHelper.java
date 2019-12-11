@@ -41,6 +41,13 @@ public class GroupsHelper {
         // Category info
         g.categories = new HashMap<String, Category>();
         g.categories.put(currentUid, new Category(currentUid, currentName, -1));
+        g.categories.put("Groceries", new Category("Groceries", "Groceries", -1));
+        g.categories.put("School", new Category(currentUid, "School", -1));
+        g.categories.put("Automobile", new Category(currentUid, "Automobile", -1));
+        g.categories.put("Home Improvement", new Category(currentUid, "Home Improvement", -1));
+        g.categories.put("Dining", new Category(currentUid, "Dining", -1));
+        g.categories.put("Entertainment", new Category(currentUid, "Entertainment", -1));
+        g.categories.put("Gifts", new Category(currentUid, "Gifts", -1));
 
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
@@ -143,17 +150,44 @@ public class GroupsHelper {
         }
     }
 
-    /*
-    public Map<String, Category> getCategories(List<Group> groups)
-    {
-        String myGroupName = GroupsHelper.getGroupName(groupsList);
 
-        for (Group g : groups) {
-            if ( g.name.equals(myGroupName) ) {
-                return g.categories;
+    static Map<String, Category> getCategories(HashMap<String, Group> groups)
+    {
+        String myGroupName = GroupsHelper.getGroupName(groups);
+
+        for (Map.Entry g : groups.entrySet()) {
+            if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                return ((Group)g.getValue()).categories;
             }
         }
 
         return new HashMap<String, Category>();
-    }*/
+    }
+
+    static void removeCategory(HashMap<String, Group> groups, String category)
+    {
+        // Not an admin? see if member of a group
+        Group groupContainingMember = null;
+        String memberToRemove = null;
+        for (Map.Entry g : groups.entrySet()) {
+            for (Map.Entry m : ((Group)g.getValue()).categories.entrySet()) {
+                if (m.getKey().equals(category)) {
+                    groupContainingMember = ((Group)g.getValue());
+                    memberToRemove = m.getKey().toString();
+                }
+            }
+        }
+
+        if (groupContainingMember != null && memberToRemove != null) {
+            groupContainingMember.categories.remove(memberToRemove);
+
+            // Add groups node
+            DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference groupsRef =  mRootReference.child("groups");
+            groupsRef.setValue(groups);
+        } else {
+            //Toast.makeText(getApplicationContext(), "Unable to remove member",
+            //        Toast.LENGTH_SHORT).show();
+        }
+    }
 }

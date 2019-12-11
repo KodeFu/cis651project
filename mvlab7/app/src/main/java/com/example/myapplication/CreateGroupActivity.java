@@ -44,7 +44,7 @@ public class CreateGroupActivity extends BaseActivity {
                     g.token = child;
                     groupsList.put(child, g);
 
-                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                    Log.d("appdebug", "CreateGroupActivity onDataChanged: " + child + " " + ds.getValue());
                 }
 
                 updateUI();

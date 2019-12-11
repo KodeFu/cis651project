@@ -50,7 +50,7 @@ public class ProfileActivity extends BaseActivity {
             user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    if (!task.isSuccessful()) {
+                    if (task.isSuccessful()) {
                         Toast.makeText(ProfileActivity.this, "Success", Toast.LENGTH_SHORT).show();
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         displayName.setText(user.getDisplayName());

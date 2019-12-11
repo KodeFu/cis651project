@@ -50,10 +50,6 @@ public class AdministerGroupActivity extends BaseActivity {
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Log.d("appdebug", "onChildAdded: start");
-                //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
-                //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
-
                 groupsList.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
@@ -65,7 +61,6 @@ public class AdministerGroupActivity extends BaseActivity {
                 }
 
                 updateUI();
-                //Log.d("appdebug", "onChildAdded: end");
             }
 
             @Override
@@ -128,33 +123,6 @@ public class AdministerGroupActivity extends BaseActivity {
         return "";
     }
 
-    void removeMember(HashMap<String, Group> groups, String uid)
-    {
-        // Not an admin? see if member of a group
-        Group groupContainingMember = null;
-        String memberToRemove = null;
-        for (Map.Entry g : groups.entrySet()) {
-            for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
-                if (m.getKey().equals(uid)) {
-                    groupContainingMember = ((Group)g.getValue());
-                    memberToRemove = m.getKey().toString();
-                }
-            }
-        }
-
-        if (groupContainingMember != null && memberToRemove != null) {
-            groupContainingMember.members.remove(memberToRemove);
-
-            // Add groups node
-            DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference groupsRef =  mRootReference.child("groups");
-            groupsRef.setValue(groups);
-        } else {
-            Toast.makeText(getApplicationContext(), "Unable to remove member",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
     public void onClickGroupDelete(View view) {
         Toast.makeText(getApplicationContext(), "onClickGroupDelete",
                 Toast.LENGTH_SHORT).show();
@@ -192,7 +160,7 @@ public class AdministerGroupActivity extends BaseActivity {
         }
 
         if (!uid.equals("")) {
-            removeMember(groupsList, uid);
+            GroupsHelper.removeMember(groupsList, uid);
 
             //membersList.remove()
         }

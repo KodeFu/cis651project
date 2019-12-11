@@ -16,17 +16,24 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class MainActivity extends BaseActivity {
-    DatabaseReference rootRef;
+import java.util.HashMap;
+import java.util.Map;
 
+public class MainActivity extends BaseActivity {
+    private FirebaseAuth mAuth;
+    DatabaseReference rootRef;
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         buildNavDrawerAndToolbar();
 
+        mAuth = FirebaseAuth.getInstance();
+
         final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference groupsRef =  rootRef;
         DatabaseReference userRef = rootRef.child("users/" + currentUser.getUid());
 
         userRef.addValueEventListener(new ValueEventListener() {
@@ -59,6 +66,30 @@ public class MainActivity extends BaseActivity {
 
             }
         });
+
+        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                //Log.d("appdebug", "onChildAdded: start");
+                //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
+                //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
+
+                groupsList.clear();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String child = ds.getKey();
+                    Group g = ds.getValue(Group.class);
+                    g.token = child;
+                    groupsList.put(child, g);
+
+                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("appdebug", "onCancelled");
+            }
+        });
     }
 
     public void onClickCreateGroup(View view) {
@@ -72,8 +103,11 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickLeaveGroup(View view) {
-        Toast.makeText(getApplicationContext(), "Leave Group",
-                Toast.LENGTH_SHORT).show();  }
+        GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid());
+
+        Toast.makeText(getApplicationContext(), "Leaving Group",
+                Toast.LENGTH_SHORT).show();
+    }
 
     public void onClickAdministerGroup(View view) {
         Intent intent = new Intent(this, AdministerGroupActivity.class);
@@ -89,4 +123,6 @@ public class MainActivity extends BaseActivity {
         Intent intent = new Intent(this, SubmitReceiptActivity.class);
         startActivity(intent);
     }
+
+
 }

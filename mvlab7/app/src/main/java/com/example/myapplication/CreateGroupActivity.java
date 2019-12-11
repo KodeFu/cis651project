@@ -27,7 +27,7 @@ public class CreateGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
     DatabaseReference groupsRef =  mRootReference;
-    List<Group> groupsList = new ArrayList<Group>();
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
     EditText groupName;
     TextView token;
     @Override
@@ -43,22 +43,17 @@ public class CreateGroupActivity extends BaseActivity {
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Log.d("appdebug", "onChildAdded: start");
-                //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
-                //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
-
                 groupsList.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
                     g.token = child;
-                    groupsList.add(g);
+                    groupsList.put(child, g);
 
                     Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
                 }
 
                 updateUI();
-                //Log.d("appdebug", "onChildAdded: end");
             }
 
             @Override
@@ -73,105 +68,23 @@ public class CreateGroupActivity extends BaseActivity {
     public void updateUI()
     {
         Log.d("appdebug", "updateUI: ");
-        groupName.setText(getGroupName(groupsList));
-        token.setText(getGroupToken(groupsList));
+        groupName.setText(GroupsHelper.getGroupName(groupsList));
+        token.setText(GroupsHelper.getGroupToken(groupsList));
 
-        Log.d("appdebug", "group token: " + getGroupToken(groupsList));
-        Log.d("appdebug", "group  name: " + getGroupName(groupsList));
-        Log.d("appdebug", "group admin: " + getGroupAdmin(groupsList));
+        Log.d("appdebug", "group token: " + GroupsHelper.getGroupToken(groupsList));
+        Log.d("appdebug", "group  name: " + GroupsHelper.getGroupName(groupsList));
+        Log.d("appdebug", "group admin: " + GroupsHelper.getGroupAdmin(groupsList));
     }
 
     public void onClickCreateGroup(View view) {
-        createGroup(groupsList, groupName.getText().toString());
+        GroupsHelper.createGroup(groupsList, groupName.getText().toString());
     }
 
-    public void createGroup(List<Group> groups, String name)
-    {
-        String currentGroupName = getGroupName(groups);
-        if (!currentGroupName.equals("")) {
-            // We are currently in a group, so can't create another
-            Toast.makeText(getApplicationContext(), "Already in a group. Leave group before creating a new group.",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        Group g = new Group();
-        Category c = new Category();
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        String currentUid = currentUser.getUid();
-        String currentName = currentUser.getDisplayName();
-
-        // Group info
-        g.name = name;
-        g.adminUid = currentUid;
-
-        // Member info
-        g.members = new HashMap<String, Member>();
-        g.members.put(currentUid, new Member(currentUid, currentName));
-
-        // Category info
-        g.categories = new HashMap<String, Category>();
-        g.categories.put(currentUid, new Category(currentUid, currentName, -1));
-
-        // Create child reference; i.e. group node
-        DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference groupsRef =  mRootReference.child("groups");
-        Random rand = new Random();
-        g.token = Integer.toString(rand.nextInt(1000000));
-        groupsRef.child(g.token).setValue(g);
-    }
-
-    String getGroupToken(List<Group> groups)
-    {
-        // Only admin can see token; verbally conveyed to users
-        for (Group g : groups) {
-            if ( g.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                return g.token;
-            }
-        }
-
-        return "";
-    }
-
-    String getGroupName(List<Group> groups)
-        {
-        // If admin of a group, return that
-        for (Group g : groups) {
-            if ( g.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                return g.name;
-            }
-        }
-
-        // Not an admin? see if member of a group
-        for (Group g : groups) {
-            for (Map.Entry m : g.members.entrySet()) {
-                if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
-                    return g.name;
-                }
-            }
-        }
-
-        // Not an admin or member, so not part of a group
-        return "";
-    }
-
-    String getGroupAdmin(List<Group> groups)
-    {
-        String myGroupName = getGroupName(groups);
-
-        for (Group g : groups) {
-            if ( g.name.equals(myGroupName) ) {
-                return g.adminUid;
-            }
-        }
-
-        return "";
-    }
 
     Map<String, Member> getMembers(List<Group> groups)
     {
-        String myGroupName = getGroupName(groups);
+        String myGroupName = GroupsHelper.getGroupName(groupsList);
 
         for (Group g : groups) {
             if ( g.name.equals(myGroupName) ) {
@@ -184,7 +97,7 @@ public class CreateGroupActivity extends BaseActivity {
 
     public Map<String, Category> getCategories(List<Group> groups)
     {
-        String myGroupName = getGroupName(groups);
+        String myGroupName = GroupsHelper.getGroupName(groupsList);
 
         for (Group g : groups) {
             if ( g.name.equals(myGroupName) ) {

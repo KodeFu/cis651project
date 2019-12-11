@@ -17,7 +17,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends BaseActivity {
     private FirebaseAuth mAuth;
@@ -70,10 +69,6 @@ public class MainActivity extends BaseActivity {
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Log.d("appdebug", "onChildAdded: start");
-                //Log.d("appdebug", "onChildAdded: numChildren " + dataSnapshot.getChildrenCount());
-                //Log.d("appdebug", "onChildAdded: key " + dataSnapshot.getKey());
-
                 groupsList.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();

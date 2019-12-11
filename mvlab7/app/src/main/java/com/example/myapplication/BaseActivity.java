@@ -127,6 +127,9 @@ public class BaseActivity extends AppCompatActivity
             case R.id.administer_group:
                 startActivity(new Intent(this, AdministerGroupActivity.class));
                 break;
+            case R.id.administer_category:
+                startActivity(new Intent(this, AdministerCategoryActivity.class));
+                break;
             case R.id.join_group:
                 startActivity(new Intent(this, JoinGroupActivity.class));
                 break;

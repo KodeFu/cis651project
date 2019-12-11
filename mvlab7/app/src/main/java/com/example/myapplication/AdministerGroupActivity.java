@@ -26,7 +26,6 @@ public class AdministerGroupActivity extends BaseActivity {
     DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
     DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
-    String[] categories = { "Clothing", "Groceries", "Dining", "Ride Share", "Entertainment", "Gifts", "Fuel / Gas", "Automobile", "Home Improvement", "Credit Cards"};
     ArrayList<String> membersList = new ArrayList<String>();
     ArrayAdapter adapterMembersList;
     @Override
@@ -40,10 +39,6 @@ public class AdministerGroupActivity extends BaseActivity {
         adapterMembersList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, membersList);
         Spinner members = (Spinner) findViewById(R.id.members);
         members.setAdapter(adapterMembersList);
-
-        ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categories);
-        Spinner category = (Spinner) findViewById(R.id.category);
-        category.setAdapter(adapter);
 
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
@@ -96,16 +91,6 @@ public class AdministerGroupActivity extends BaseActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
-    public void onClickCategoryDelete(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryDelete",
-                Toast.LENGTH_SHORT).show();
-    }
-
-    public void onClickCategoryUpdate(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryUpdate",
-                Toast.LENGTH_SHORT).show();
-    }
-
     public void onClickMemberRemove(View view)
     {
         String uid = "";
@@ -130,4 +115,5 @@ public class AdministerGroupActivity extends BaseActivity {
 
         adapterMembersList.notifyDataSetChanged();
     }
+
 }

@@ -6,14 +6,17 @@
             android:id="@+id/create_group"
             android:title="Create Group"/>
         <item
+            android:id="@+id/administer_group"
+            android:title="Administer Group"/>
+        <item
+            android:id="@+id/administer_category"
+            android:title="Administer Category"/>
+        <item
             android:id="@+id/join_group"
             android:title="Join Group"/>
         <item
             android:id="@+id/leave_group"
             android:title="Leave Group"/>
-        <item
-            android:id="@+id/administer_group"
-            android:title="Administer Group"/>
         <item
             android:id="@+id/submit_receipt"
             android:title="Submit Receipt"/>

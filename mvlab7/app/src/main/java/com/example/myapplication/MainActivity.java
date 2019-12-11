@@ -109,6 +109,11 @@ public class MainActivity extends BaseActivity {
         startActivity(intent);
     }
 
+    public void onClickAdministerCategory(View view) {
+        Intent intent = new Intent(this, AdministerCategoryActivity.class);
+        startActivity(intent);
+    }
+
     public void onClickViewSpending(View view) {
         Intent intent = new Intent(this, ViewSpendingActivity.class);
         startActivity(intent);
@@ -118,6 +123,5 @@ public class MainActivity extends BaseActivity {
         Intent intent = new Intent(this, SubmitReceiptActivity.class);
         startActivity(intent);
     }
-
 
 }

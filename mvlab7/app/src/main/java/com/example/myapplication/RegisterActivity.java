@@ -37,8 +37,8 @@ public class RegisterActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
-    public void onClickUploadPhoto(View view) {
-        Toast.makeText(getApplicationContext(), "onClickUploadPhoto",
+    public void onClickTakePhoto(View view) {
+        Toast.makeText(getApplicationContext(), "onClickTakePhoto",
                 Toast.LENGTH_SHORT).show();
     }
 

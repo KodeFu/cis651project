@@ -14,15 +14,21 @@ admin.initializeApp();
 // Listens for changes to receipts and updates summary
 exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/{year}/{month}/detail')
     .onWrite(async (change, context) => {
-        // Grab the current value of what was written to the Realtime Database.
-        const original = change.after.val();
-
         console.log(`updateSummary groupToken: ${context.params.groupToken}, year: ${context.params.year}, month: ${context.params.month}`);
 
-        await change.after.ref.parent.child('summary/household').set(25);
+        const toWait = [];
+        change.after.forEach(function (categorySnapshot) {
+            var categoryTotal = 0;
+            categorySnapshot.forEach(function (receiptSnapShot) {
+                const receipt = receiptSnapShot.val();
+                categoryTotal = categoryTotal + parseFloat(receipt.amount);
+            });
+            toWait.push(change.after.ref.parent.child(`summary/${categorySnapshot.key}`).set(categoryTotal));
+        });
+        await Promise.all(toWait);
 
-        var userTokenRef = admin.database().ref('/userTokens');   
-     
+        /* const userTokenRef = admin.database().ref('/userTokens');
+
         const dataSnapshot = await userTokenRef.once('value');
         const payload = {
             notification: {
@@ -32,9 +38,8 @@ exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/
 
         const toWait = [];
         dataSnapshot.forEach(function (childSnapshot) {
-            var deviceToken=childSnapshot.val().toString();
-            console.log(childSnapshot.key.toString());    
+            const deviceToken=childSnapshot.val().toString();
             toWait.push(admin.messaging().sendToDevice(deviceToken, payload));
         });
-        await Promise.all(toWait);
+        await Promise.all(toWait); */
     });

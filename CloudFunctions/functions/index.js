@@ -13,11 +13,28 @@ admin.initializeApp();
 
 // Listens for changes to receipts and updates summary
 exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/{year}/{month}/detail')
-    .onWrite((change, context) => {
-      // Grab the current value of what was written to the Realtime Database.
-      const original = change.after.val();
+    .onWrite(async (change, context) => {
+        // Grab the current value of what was written to the Realtime Database.
+        const original = change.after.val();
 
-      console.log(`updateSummary groupToken: ${context.params.groupToken}, year: ${context.params.year}, month: ${context.params.month}`);
+        console.log(`updateSummary groupToken: ${context.params.groupToken}, year: ${context.params.year}, month: ${context.params.month}`);
 
-      return change.after.ref.parent.child('summary/household').set(25);
+        await change.after.ref.parent.child('summary/household').set(25);
+
+        var userTokenRef = admin.database().ref('/userTokens');   
+     
+        const dataSnapshot = await userTokenRef.once('value');
+        const payload = {
+            notification: {
+                title: 'Receipt Update'
+            }
+        };
+
+        const toWait = [];
+        dataSnapshot.forEach(function (childSnapshot) {
+            var deviceToken=childSnapshot.val().toString();
+            console.log(childSnapshot.key.toString());    
+            toWait.push(admin.messaging().sendToDevice(deviceToken, payload));
+        });
+        await Promise.all(toWait);
     });

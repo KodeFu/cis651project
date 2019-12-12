@@ -16,30 +16,63 @@ exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/
     .onWrite(async (change, context) => {
         console.log(`updateSummary groupToken: ${context.params.groupToken}, year: ${context.params.year}, month: ${context.params.month}`);
 
-        const toWait = [];
+        const currentSummarySnapshot =
+            await admin.database().ref(`/spending/${context.params.groupToken}/receipts/${context.params.year}/${context.params.month}/summary`).once('value');
+
+        var databaseUpdates = {};
+        var categoriesChanged = {}
         change.after.forEach(function (categorySnapshot) {
             var categoryTotal = 0;
             categorySnapshot.forEach(function (receiptSnapShot) {
                 const receipt = receiptSnapShot.val();
                 categoryTotal = categoryTotal + parseFloat(receipt.amount);
             });
-            toWait.push(change.after.ref.parent.child(`summary/${categorySnapshot.key}`).set(categoryTotal));
+            const currentValueObject = currentSummarySnapshot.val();
+            const currentValue = currentValueObject && currentValueObject[categorySnapshot.key];
+            if (currentValue != categoryTotal) {
+                databaseUpdates[`summary/${categorySnapshot.key}`] = categoryTotal;
+                categoriesChanged[`${categorySnapshot.key}`] = categoryTotal;
+            }
         });
-        await Promise.all(toWait);
+        await change.after.ref.parent.update(databaseUpdates);
 
-        /* const userTokenRef = admin.database().ref('/userTokens');
+        const groupsSnapshot =
+            await admin.database().ref(`/groups/${context.params.groupToken}`).once('value');
 
-        const dataSnapshot = await userTokenRef.once('value');
+        const userTokensSnapshot =
+            await admin.database().ref('/userTokens').once('value');
+
         const payload = {
             notification: {
-                title: 'Receipt Update'
+                title: '',
+                body: ''
             }
         };
 
         const toWait = [];
-        dataSnapshot.forEach(function (childSnapshot) {
-            const deviceToken=childSnapshot.val().toString();
-            toWait.push(admin.messaging().sendToDevice(deviceToken, payload));
-        });
-        await Promise.all(toWait); */
+        for (var categoryKey of Object.keys(categoriesChanged)) {
+            const categoryObject = groupsSnapshot.child(`categories/${categoryKey}`).val();
+            if (categoriesChanged[categoryKey] / categoryObject['limit'] > .9) {
+                console.log(`Receipt submitted and ${categoryKey} spending now greater than 90% of limit.`);
+                payload.notification.title = 'Family Budget'
+                payload.notification.body = `Receipt submitted and ${categoryKey} spending now greater than 90% of limit.`
+
+                const membersObject = groupsSnapshot.child('members').val();
+
+                for (var memberKey of Object.keys(membersObject)) {
+                    userTokensObject = userTokensSnapshot.val();
+                    if (userTokensObject) {
+                        for (var userTokenKey of Object.keys(userTokensObject)) {
+                            if (memberKey.localeCompare(userTokenKey) == 0) {
+                                deviceToken = userTokensObject[userTokenKey];
+                                console.log(`Sending notification to deviceToken ${deviceToken}`);
+                                toWait.push(admin.messaging().sendToDevice(deviceToken, payload));
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        await Promise.all(toWait);
     });

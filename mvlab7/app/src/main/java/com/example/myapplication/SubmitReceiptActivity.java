@@ -116,10 +116,11 @@ public class SubmitReceiptActivity extends BaseActivity
                         Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
 
                         for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                            String child = ds.getKey();
-                            //String value = ds.getValue(String.class);
-                            //ds.getKey()
-                            Log.d("appdebug", "onDataChange: spending: " + child);
+                            String key = ds.getKey();
+                            Number value = (Number) ds.getValue();
+                            Log.d("appdebug", "onDataChange: spending: " + key);
+                            Log.d("appdebug", "onDataChange: spending: " + value);
+                            Log.d("appdebug", "onDataChange: spending: " + ds.getValue() + " " + ds.getValue().getClass());
 
                         }
                     }

@@ -98,42 +98,44 @@ public class SubmitReceiptActivity extends BaseActivity
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.d("appdebug", "onDataChange: ");
 
+                final Calendar calendar = Calendar.getInstance();
+                int yy = calendar.get(Calendar.YEAR);
+                int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
+                int dd = calendar.get(Calendar.DAY_OF_MONTH);
+
+                String myGroup = GroupsHelper.getGroupUserToken(groupsList);
+                String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
+                Log.d("appdebug", "db path is " + path);
+
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference dbRef = database.getReference(path);
+
+                dbRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
+
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            String child = ds.getKey();
+                            //String value = ds.getValue(String.class);
+                            //ds.getKey()
+                            Log.d("appdebug", "onDataChange: spending: " + child);
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.d("appdebug", "spending onCancelled");
+                    }
+                });
+
                 updateUI();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d("appdebug", "onCancelled");
-            }
-        });
-
-        // FIXME: Not called before this listener, so myGroup is null
-        String myGroup = GroupsHelper.getGroupUserToken(groupsList);
-        myGroup = "281140"; // FIXME: Hardcoded
-
-        String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
-        Log.d("appdebug", path);
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference dbRef = database.getReference(path);
-
-        dbRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
-
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    String value = ds.getValue(String.class);
-                    //ds.getKey()
-                    Log.d("appdebug", "onDataChange: spending: " + child + " " + value);
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.d("appdebug", "spending onCancelled");
             }
         });
     }

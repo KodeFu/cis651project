@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/search_action"
+        android:title="Search"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="always|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"/>
+    <item
+        android:id="@+id/profile_action"
+        android:title="Profile"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/signout_action"
+        android:title="Sign Out"
+        app:showAsAction="never"/>
+</menu>

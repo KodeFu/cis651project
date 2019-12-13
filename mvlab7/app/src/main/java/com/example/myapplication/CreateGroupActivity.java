@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -71,7 +73,28 @@ public class CreateGroupActivity extends BaseActivity {
     }
 
     public void onClickCreateGroup(View view) {
-        GroupsHelper.createGroup(groupsList, groupName.getText().toString());
+        if (GroupsHelper.createGroup(groupsList, groupName.getText().toString()))
+        {
+            Toast.makeText(getApplicationContext(), "Create Successful",
+                    Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Can Not Create Group",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
+    public void onClickRemoveGroup(View view) {
+        if (GroupsHelper.removeGroup(groupsList))
+        {
+            Toast.makeText(getApplicationContext(), "Remove Successful",
+                    Toast.LENGTH_SHORT).show();
+        }
+            else
+        {
+            Toast.makeText(getApplicationContext(), "Can Not Remove Group",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 }

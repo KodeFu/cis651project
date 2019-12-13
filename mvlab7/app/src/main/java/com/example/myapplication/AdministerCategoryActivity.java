@@ -6,9 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,12 +40,41 @@ public class AdministerCategoryActivity extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
 
         adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
-        Spinner category = (Spinner) findViewById(R.id.category);
+        final Spinner category = (Spinner) findViewById(R.id.category);
         category.setAdapter(adapterCategoriesList);
+
+        category.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+                Log.d("appdebug", "updateUI: onItemSelected position: " + position);
+
+                Category c = GroupsHelper.getCategory(groupsList, categoryList.get(position));
+                Log.d("appdebug", "updateUI: onItemSelected " + c.displayName);
+
+                if (c!=null) {
+                    EditText limit = findViewById(R.id.limit);
+
+                    if (c.limit == -1 ) {
+                        limit.setText("No Limit");
+                    } else {
+                        limit.setText(c.limit.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+                Log.d("appdebug", "updateUI: onItemSelected position: " + "nothing changed");
+            }
+
+        });
 
         groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Log.d("appdebug", "onDataChange: ");
                 groupsList.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
@@ -71,16 +102,28 @@ public class AdministerCategoryActivity extends BaseActivity {
         Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
         categoryList.clear();
 
-        for (Map.Entry m : groupCategoryList.entrySet()) {
+        for (Map.Entry m : groupCategoryList.entrySet())
+        {
             categoryList.add(((Category)m.getValue()).displayName);
         }
-        Spinner m = findViewById(R.id.category);
+        Spinner categorySpinner = findViewById(R.id.category);
         adapterCategoriesList.notifyDataSetChanged();
+
+        TextView token = findViewById(R.id.token);
+        token.setText(GroupsHelper.getGroupToken(groupsList));
     }
 
     public void onClickCategoryAdd(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryAdd",
-                Toast.LENGTH_SHORT).show();
+        EditText categoryName = findViewById(R.id.new_category);
+        if (!categoryName.getText().toString().equals("")) {
+            GroupsHelper.addCategory(groupsList, categoryName.getText().toString());
+
+            Toast.makeText(getApplicationContext(), "Category Added", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Can Not Add Category", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onClickCategoryDelete(View view) {
@@ -99,16 +142,67 @@ public class AdministerCategoryActivity extends BaseActivity {
         }
 
         if (!categoryName.equals("")) {
-            GroupsHelper.removeCategory(groupsList, categoryName);
+            if (GroupsHelper.removeCategory(groupsList, categoryName))
+            {
+                Toast.makeText(getApplicationContext(), "Remove Successful",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(), "Can Not Remove Category",
+                        Toast.LENGTH_SHORT).show();
+            }
 
-            //membersList.remove()
         }
+
+        /*if (adapterCategoriesList.getCount()>=0) {
+            categorySpinner.setSelection(0);
+            categorySpinner.set
+        }*/
 
         adapterCategoriesList.notifyDataSetChanged();
     }
 
-    public void onClickCategoryUpdate(View view) {
-        Toast.makeText(getApplicationContext(), "onClickCategoryUpdate",
-                Toast.LENGTH_SHORT).show();
+    public void onClickCategoryUpdate(View view)
+    {
+        String categoryName = "";
+        Category category = new Category();
+
+        Spinner categorySpinner = findViewById(R.id.category);
+
+        if (categorySpinner.getSelectedItem() == null)
+        {
+            return;
+        }
+
+        String selectedItem = categorySpinner.getSelectedItem().toString();
+
+        EditText limit = findViewById(R.id.limit);
+        if (limit.getText().toString().equals("No Limit"))
+        {
+            category.limit = -1;
+        }
+        else
+        {
+            category.limit = Integer.parseInt( limit.getText().toString() );
+        }
+
+        Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
+
+        for (Map.Entry m : groupCategoryList.entrySet()) {
+            if (((Category)m.getValue()).displayName.equals(selectedItem)) {
+                categoryName = m.getKey().toString();
+            }
+        }
+
+        if (GroupsHelper.updateCategory(groupsList, categoryName, category)) {
+            Toast.makeText(getApplicationContext(), "Update Successful", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Could Not Update Category", Toast.LENGTH_SHORT).show();
+        }
+
+        adapterCategoriesList.notifyDataSetChanged();
     }
 }

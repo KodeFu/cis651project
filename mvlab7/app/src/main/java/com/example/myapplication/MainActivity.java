@@ -93,15 +93,28 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickJoinGroup(View view) {
-        Intent intent = new Intent(this, JoinGroupActivity.class);
-        startActivity(intent);
+        if (GroupsHelper.getGroupName(groupsList).equals("")) {
+            Intent intent = new Intent(this, JoinGroupActivity.class);
+            startActivity(intent);
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Already In A Group. Leave Group First.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onClickLeaveGroup(View view) {
-        GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid());
-
-        Toast.makeText(getApplicationContext(), "Leaving Group",
-                Toast.LENGTH_SHORT).show();
+        if (GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid()))
+        {
+            Toast.makeText(getApplicationContext(), "Remove Successful",
+                    Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Can Not Remove Member",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onClickAdministerGroup(View view) {

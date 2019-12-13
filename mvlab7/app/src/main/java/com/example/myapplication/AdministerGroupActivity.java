@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -79,16 +80,24 @@ public class AdministerGroupActivity extends BaseActivity {
         Spinner m = findViewById(R.id.members);
         adapterMembersList.notifyDataSetChanged();
 
-    }
+        TextView token = findViewById(R.id.token);
+        token.setText(GroupsHelper.getGroupToken(groupsList));
 
-    public void onClickGroupDelete(View view) {
-        Toast.makeText(getApplicationContext(), "onClickGroupDelete",
-                Toast.LENGTH_SHORT).show();
     }
 
     public void onClickGroupUpdate(View view) {
-        Toast.makeText(getApplicationContext(), "onClickGroupUpdate",
-                Toast.LENGTH_SHORT).show();
+        EditText groupName = findViewById(R.id.group_name);
+        String s = groupName.getText().toString();
+        if ( (!s.equals("")) && GroupsHelper.updateGroupName(groupsList, s))
+        {
+            Toast.makeText(getApplicationContext(), "Update Successful",
+                    Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Could Not Update Group",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onClickMemberRemove(View view)
@@ -108,9 +117,17 @@ public class AdministerGroupActivity extends BaseActivity {
         }
 
         if (!uid.equals("")) {
-            GroupsHelper.removeMember(groupsList, uid);
-
-            //membersList.remove()
+            Log.d("appdebug", "onClickMemberRemove: uid of member " + uid);
+            if (GroupsHelper.removeMember(groupsList, uid))
+            {
+                Toast.makeText(getApplicationContext(), "Remove Successful",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(), "Can Not Remove Member",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
 
         adapterMembersList.notifyDataSetChanged();

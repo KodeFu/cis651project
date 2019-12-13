@@ -131,12 +131,27 @@ public class BaseActivity extends AppCompatActivity
                 startActivity(new Intent(this, AdministerCategoryActivity.class));
                 break;
             case R.id.join_group:
-                startActivity(new Intent(this, JoinGroupActivity.class));
+                if (GroupsHelper.getGroupName(groupsList).equals(""))
+                {
+                    startActivity(new Intent(this, JoinGroupActivity.class));
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Already In A Group. Leave Group First.",
+                        Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.leave_group:
-                GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid());
-                Toast.makeText(getApplicationContext(), "Leaving Group",
-                        Toast.LENGTH_SHORT).show();
+                if (GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid()) )
+                {
+                    Toast.makeText(getApplicationContext(), "Remove Successful",
+                            Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Can Not Remove Member",
+                            Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.submit_receipt:
                 startActivity(new Intent(this, SubmitReceiptActivity.class));

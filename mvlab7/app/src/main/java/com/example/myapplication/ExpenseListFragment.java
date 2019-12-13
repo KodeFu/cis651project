@@ -24,8 +24,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +36,11 @@ import java.util.Map;
 public class ExpenseListFragment extends Fragment
         implements DatePickerDialog.OnDateSetListener {
 
+    private boolean initialized = false;
+
     private FirebaseAuth mAuth;
     DatabaseReference groupsRef;
+    DatabaseReference spendingRef;
 
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     ArrayList<String> categoryList = new ArrayList<String>();
@@ -44,7 +50,7 @@ public class ExpenseListFragment extends Fragment
 
     private Context context;
     private View rootView;
-    private List<Expense> expenseList;
+    private List<ExpenseAdapterItem> expenseList;
     private OnItemSelectedListener clickListener;
     private DatePicker startDate, endDate;
 
@@ -63,8 +69,8 @@ public class ExpenseListFragment extends Fragment
         rootView = inflater.inflate(R.layout.expense_list_fragment, container, false);
 
         mAuth = FirebaseAuth.getInstance();
-        groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
 
+        groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
         groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -79,6 +85,75 @@ public class ExpenseListFragment extends Fragment
                 }
 
                 updateUI();
+
+                if (!initialized) {
+                    initialized = true;
+
+                    String groupUserToken = GroupsHelper.getGroupUserToken(groupsList);
+
+                    if (!groupUserToken.isEmpty()) {
+                        spendingRef = FirebaseDatabase.getInstance().getReference("/spending/" + groupUserToken);
+                        spendingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Spending s = dataSnapshot.getValue(Spending.class);
+                                Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
+
+                                for (Map.Entry y : s.receipts.entrySet()) {
+                                    Map<String, MonthlyReceipts> mapMonthlyReceipts = (Map<String, MonthlyReceipts>)y.getValue();
+                                    for (Map.Entry mr : mapMonthlyReceipts.entrySet()) {
+                                        MonthlyReceipts monthlyReceipts = (MonthlyReceipts)mr.getValue();
+                                        for (Map.Entry c : monthlyReceipts.detail.entrySet()) {
+                                            Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
+                                            for (Map.Entry r : mapReceipts.entrySet()) {
+                                                Receipt receipt = (Receipt)r.getValue();
+                                                String dateString = String.valueOf(receipt.date);
+                                                NumberFormat nf = NumberFormat.getInstance();
+                                                nf.setMaximumFractionDigits(2);
+                                                nf.setMinimumFractionDigits(2);
+                                                String amountString = nf.format(receipt.amount);
+                                                expenseList.add(
+                                                        new ExpenseAdapterItem(
+                                                                R.drawable.profile_photo,
+                                                                dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
+                                                                receipt.user,
+                                                                receipt.category,
+                                                                amountString,
+                                                                receipt.description
+                                                        )
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                                Collections.sort(expenseList, new Comparator<ExpenseAdapterItem>() {
+                                    @Override
+                                    public int compare(ExpenseAdapterItem o1, ExpenseAdapterItem o2) {
+                                        Long day1 = Long.parseLong(o1.getDate().substring(3, 5));
+                                        Long month1 = Long.parseLong(o1.getDate().substring(0, 2));
+                                        Long year1 = Long.parseLong(o1.getDate().substring(6, 10));
+                                        Long l1 = (year1 * 10000) + (month1 * 100) + day1;
+
+                                        Long day2 = Long.parseLong(o2.getDate().substring(3, 5));
+                                        Long month2 = Long.parseLong(o2.getDate().substring(0, 2));
+                                        Long year2 = Long.parseLong(o2.getDate().substring(6, 10));
+                                        Long l2 = (year2 * 10000) + (month2 * 100) + day2;
+
+                                        if (l1 < l2) return -1;
+                                        if (l1 > l2) return 1;
+                                        return 0;
+                                    }
+                                });
+                                expenseAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                Log.d("appdebug", "onCancelled");
+                            }
+                        });
+                    }
+                }
             }
 
             @Override
@@ -130,16 +205,7 @@ public class ExpenseListFragment extends Fragment
             }
         });
 
-        expenseList = new ArrayList<Expense>();
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/01/2019", "Jerry Doe", "Clothing", "$100", "Clothes for school"));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/02/2019", "Mary Doe", "Groceries", "$200", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/03/2019", "Carry Doe", "Dining", "$100", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/04/2019", "Gerry Doe", "Ride Share", "$15", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/05/2019", "Terry Doe", "Entertainment", "$25", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/06/2019", "Larry Doe", "Gifts", "$85", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/07/2019", "Barry Doe", "Fuel / Gas", "$20", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/08/2019", "Harry Doe", "Automobile", "$200", ""));
-        expenseList.add(new Expense(R.drawable.profile_photo, "10/09/2019", "Perry Doe", "Home Improvement", "$500", ""));
+        expenseList = new ArrayList<ExpenseAdapterItem>();
         expenseAdapter = new ExpenseAdapter(context, expenseList);
 
         ListView listView  = rootView.findViewById(R.id.list_view);

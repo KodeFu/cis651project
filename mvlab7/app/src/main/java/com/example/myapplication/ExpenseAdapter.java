@@ -14,11 +14,11 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExpenseAdapter extends ArrayAdapter<Expense> {
+public class ExpenseAdapter extends ArrayAdapter<ExpenseAdapterItem> {
     private Context context;
-    private List<Expense> expenseList = new ArrayList<Expense>();
+    private List<ExpenseAdapterItem> expenseList = new ArrayList<ExpenseAdapterItem>();
 
-    public ExpenseAdapter(@NonNull Context context, @NonNull List<Expense> objects) {
+    public ExpenseAdapter(@NonNull Context context, @NonNull List<ExpenseAdapterItem> objects) {
         super(context, 0, objects);
         this.context = context;
         this.expenseList = objects;
@@ -31,7 +31,7 @@ public class ExpenseAdapter extends ArrayAdapter<Expense> {
         if(listItem == null)
             listItem = LayoutInflater.from(context).inflate(R.layout.expense_list_item,parent,false);
 
-        Expense currentExpense = expenseList.get(position);
+        ExpenseAdapterItem currentExpense = expenseList.get(position);
 
         ImageView image = (ImageView)listItem.findViewById(R.id.iv_profile_photo);
         image.setImageResource(currentExpense.getProfilePhoto());

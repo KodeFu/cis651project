@@ -1,7 +1,7 @@
 package com.example.myapplication;
 
 public class Receipt {
-    public Integer amount;
+    public Double amount;
     public String category;
     public Long date;
     public String description;

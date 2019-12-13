@@ -13,6 +13,7 @@ public class ViewSpendingActivity extends BaseActivity
         implements ExpenseListFragment.OnItemSelectedListener {
 
     ExpenseListFragment expenseListFragment;
+    private boolean twoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +24,11 @@ public class ViewSpendingActivity extends BaseActivity
         if (savedInstanceState == null) {
             expenseListFragment = new ExpenseListFragment(this);
             getSupportFragmentManager().beginTransaction().replace(R.id.main_container, expenseListFragment).commit();
+        }
+
+        twoPane = false;
+        if (findViewById(R.id.detail_container) != null) {
+            twoPane = true;
         }
     }
 
@@ -65,10 +71,18 @@ public class ViewSpendingActivity extends BaseActivity
         Fragment expenseDetailFragment = new ExpenseDetailFragment();
         expenseDetailFragment.setArguments(args);
 
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.main_container, expenseDetailFragment)
-                .addToBackStack(null)
-                .commit();
+        if (twoPane) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.detail_container, expenseDetailFragment)
+                    .addToBackStack(null)
+                    .commit();
+        } else {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.main_container, expenseDetailFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

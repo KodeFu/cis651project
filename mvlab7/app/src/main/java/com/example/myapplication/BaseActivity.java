@@ -121,6 +121,11 @@ public class BaseActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem menuItem) {
         int id = menuItem.getItemId();
         switch (id) {
+            case R.id.home:
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                break;
             case R.id.create_group:
                 if (!GroupsHelper.isAdmin(groupsList)) {
                     Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();

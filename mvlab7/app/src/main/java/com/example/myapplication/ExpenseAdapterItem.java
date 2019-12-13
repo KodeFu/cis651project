@@ -1,6 +1,6 @@
 package com.example.myapplication;
 
-public class Expense {
+public class ExpenseAdapterItem {
     private int profilePhoto;
     private String date;
     private String name;
@@ -8,7 +8,7 @@ public class Expense {
     private String amount;
     private String description;
 
-    public Expense(
+    public ExpenseAdapterItem(
             int profilePhoto,
             String date,
             String name,

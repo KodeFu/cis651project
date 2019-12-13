@@ -41,16 +41,22 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class SubmitReceiptActivity extends BaseActivity
         implements DatePickerDialog.OnDateSetListener {
 
+    private String userDisplayName;
+
     private static final int MY_PERMISSIONS_CAMERA = 111;
 
+    TextView expenseDateTextView;
+    Spinner categorySpinner;
+    EditText amountEditText;
+    EditText descriptionEditText;
     ImageView ivReceiptPhoto;
+
     static final int REQUEST_IMAGE_CAPTURE = 1;
     FirebaseStorage storage;
     byte[] receiptPhotoByteArray;
@@ -65,16 +71,22 @@ public class SubmitReceiptActivity extends BaseActivity
         setContentView(R.layout.activity_submit_receipt);
         buildNavDrawerAndToolbar();
 
+        expenseDateTextView = findViewById(R.id.expense_date);
+        categorySpinner = findViewById(R.id.category);
+        amountEditText = findViewById(R.id.amount);
+        descriptionEditText = findViewById(R.id.et_description);
+        ivReceiptPhoto = findViewById(R.id.iv_receipt);
+
+        userDisplayName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+
         adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
-        final Spinner category = (Spinner) findViewById(R.id.category);
-        category.setAdapter(adapterCategoriesList);
+        categorySpinner.setAdapter(adapterCategoriesList);
 
         final Calendar calendar = Calendar.getInstance();
         int yy = calendar.get(Calendar.YEAR);
         int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
         int dd = calendar.get(Calendar.DAY_OF_MONTH);
 
-        TextView expenseDateTextView = findViewById(R.id.expense_date);
         expenseDateTextView.setText(mm + "/" + dd + "/" + yy);
         expenseDateTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,8 +100,6 @@ public class SubmitReceiptActivity extends BaseActivity
 
             }
         });
-
-        ivReceiptPhoto = findViewById(R.id.iv_receipt);
 
         storage = FirebaseStorage.getInstance();
 
@@ -145,8 +155,7 @@ public class SubmitReceiptActivity extends BaseActivity
         String date = String.format("%02d", month) + "/" +
                 String.format("%02d", day) + "/" +
                 String.format("%04d", year);
-        final TextView textView = findViewById(R.id.expense_date);
-        textView.setText(date);
+        expenseDateTextView.setText(date);
     }
 
     public void onClickTakePhoto(View view) {
@@ -225,13 +234,6 @@ public class SubmitReceiptActivity extends BaseActivity
                         Log.d("appdebug", downloadUri.toString());
 
                         // TODO: add receipt under spending in database
-
-                        TextView expenseDateTextView = findViewById(R.id.expense_date);
-                        EditText descriptionEditText = findViewById(R.id.et_description);
-                        EditText amountEditText = findViewById(R.id.amount);
-                        Spinner categorySpinner = findViewById(R.id.category);
-                        TextView textView = findViewById(R.id.expense_date);
-
                         String categoryName = categorySpinner.getSelectedItem().toString();
                         Log.d("appdebug", "spending: category name is  " +  categoryName);
 
@@ -244,16 +246,17 @@ public class SubmitReceiptActivity extends BaseActivity
                         Log.d("appdebug", "spending: my group is: " +  myGroup);
 
                         Receipt receipt = new Receipt();
-                        receipt.amount = Integer.parseInt(amountEditText.getText().toString());
+                        receipt.amount = Double.parseDouble(amountEditText.getText().toString().trim());
                         receipt.category = categoryName;
                         receipt.description = descriptionEditText.getText().toString();
                         receipt.receipt = downloadUri.toString();
 
-                        // FIXME: Is this time since epoch? or simply normal format date? If so, why long?
-                        receipt.date = System.currentTimeMillis() / 1000;
-                        //receipt.date = textView.getText().toString();
+                        Long day = Long.parseLong(expenseDateTextView.getText().toString().substring(3, 5));
+                        Long month = Long.parseLong(expenseDateTextView.getText().toString().substring(0, 2));
+                        Long year = Long.parseLong(expenseDateTextView.getText().toString().substring(6, 10));
+                        receipt.date = (year * 10000) + (month * 100) + day;
 
-                        receipt.user = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        receipt.user = userDisplayName;
 
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
                         DatabaseReference dbRef = database.getReference(
@@ -312,8 +315,6 @@ public class SubmitReceiptActivity extends BaseActivity
         {
             categoryList.add(((Category)m.getValue()).displayName);
         }
-        Spinner categorySpinner = findViewById(R.id.category);
         adapterCategoriesList.notifyDataSetChanged();
-
     }
 }

@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -26,18 +27,26 @@ import androidx.core.content.ContextCompat;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class SubmitReceiptActivity extends BaseActivity
         implements DatePickerDialog.OnDateSetListener {
-    String[] categories = { "Clothing", "Groceries", "Dining", "Ride Share", "Entertainment", "Gifts", "Fuel / Gas", "Automobile", "Home Improvement", "Credit Cards"};
 
     private static final int MY_PERMISSIONS_CAMERA = 111;
 
@@ -46,15 +55,23 @@ public class SubmitReceiptActivity extends BaseActivity
     FirebaseStorage storage;
     byte[] receiptPhotoByteArray;
 
+    //HashMap<String, Group> groupsList = new HashMap<String, Group>();
+    ArrayList<String> categoryList = new ArrayList<String>();
+    ArrayAdapter adapterCategoriesList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_submit_receipt);
         buildNavDrawerAndToolbar();
 
+        adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
+        final Spinner category = (Spinner) findViewById(R.id.category);
+        category.setAdapter(adapterCategoriesList);
+
         final Calendar calendar = Calendar.getInstance();
         int yy = calendar.get(Calendar.YEAR);
-        int mm = calendar.get(Calendar.MONTH);
+        int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
         int dd = calendar.get(Calendar.DAY_OF_MONTH);
 
         TextView expenseDateTextView = findViewById(R.id.expense_date);
@@ -64,20 +81,61 @@ public class SubmitReceiptActivity extends BaseActivity
             public void onClick(View v) {
                 final Calendar calendar = Calendar.getInstance();
                 int yy = calendar.get(Calendar.YEAR);
-                int mm = calendar.get(Calendar.MONTH);
+                int mm = calendar.get(Calendar.MONTH); // Don't add one here, datePcikerDialog handles it (it seems)
                 int dd = calendar.get(Calendar.DAY_OF_MONTH);
                 DatePickerDialog datePickerDialog = new DatePickerDialog(SubmitReceiptActivity.this, SubmitReceiptActivity.this, yy, mm, dd);
                 datePickerDialog.show();
+
             }
         });
-
-        ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categories);
-        Spinner category = (Spinner) findViewById(R.id.category);
-        category.setAdapter(adapter);
 
         ivReceiptPhoto = findViewById(R.id.iv_receipt);
 
         storage = FirebaseStorage.getInstance();
+
+        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Log.d("appdebug", "onDataChange: ");
+
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("appdebug", "onCancelled");
+            }
+        });
+
+        // FIXME: Not called before this listener, so myGroup is null
+        String myGroup = GroupsHelper.getGroupUserToken(groupsList);
+        myGroup = "281140"; // FIXME: Hardcoded
+
+        String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
+        Log.d("appdebug", path);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference dbRef = database.getReference(path);
+
+        dbRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
+
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String child = ds.getKey();
+                    String value = ds.getValue(String.class);
+                    //ds.getKey()
+                    Log.d("appdebug", "onDataChange: spending: " + child + " " + value);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("appdebug", "spending onCancelled");
+            }
+        });
     }
 
     @Override
@@ -166,6 +224,40 @@ public class SubmitReceiptActivity extends BaseActivity
 
                         // TODO: add receipt under spending in database
 
+                        TextView expenseDateTextView = findViewById(R.id.expense_date);
+                        EditText descriptionEditText = findViewById(R.id.et_description);
+                        EditText amountEditText = findViewById(R.id.amount);
+                        Spinner categorySpinner = findViewById(R.id.category);
+                        TextView textView = findViewById(R.id.expense_date);
+
+                        String categoryName = categorySpinner.getSelectedItem().toString();
+                        Log.d("appdebug", "spending: category name is  " +  categoryName);
+
+                        final Calendar calendar = Calendar.getInstance();
+                        int yy = calendar.get(Calendar.YEAR);
+                        int mm = calendar.get(Calendar.MONTH) + 1;
+                        int dd = calendar.get(Calendar.DAY_OF_MONTH);
+
+                        String myGroup = GroupsHelper.getGroupUserToken(groupsList);
+                        Log.d("appdebug", "spending: my group is: " +  myGroup);
+
+                        Receipt receipt = new Receipt();
+                        receipt.amount = Integer.parseInt(amountEditText.getText().toString());
+                        receipt.category = categoryName;
+                        receipt.description = descriptionEditText.getText().toString();
+                        receipt.receipt = downloadUri.toString();
+
+                        // FIXME: Is this time since epoch? or simply normal format date? If so, why long?
+                        receipt.date = System.currentTimeMillis() / 1000;
+                        //receipt.date = textView.getText().toString();
+
+                        receipt.user = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference dbRef = database.getReference(
+                                "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/detail/" + categoryName );
+                        dbRef.push().setValue(receipt);
+
                         Toast.makeText(SubmitReceiptActivity.this, "Receipt submit successful",
                                 Toast.LENGTH_SHORT).show();
                     } else {
@@ -205,5 +297,21 @@ public class SubmitReceiptActivity extends BaseActivity
                 iv.setImageBitmap(result);
             }
         }
+    }
+
+    public void updateUI()
+    {
+        Log.d("appdebug", "updateUI: ");
+
+        Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
+        categoryList.clear();
+
+        for (Map.Entry m : groupCategoryList.entrySet())
+        {
+            categoryList.add(((Category)m.getValue()).displayName);
+        }
+        Spinner categorySpinner = findViewById(R.id.category);
+        adapterCategoriesList.notifyDataSetChanged();
+
     }
 }

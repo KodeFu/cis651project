@@ -125,6 +125,7 @@ public class BaseActivity extends AppCompatActivity
                 Intent intent = new Intent(this, LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 break;
             case R.id.create_group:
                 if (!GroupsHelper.isAdmin(groupsList)) {

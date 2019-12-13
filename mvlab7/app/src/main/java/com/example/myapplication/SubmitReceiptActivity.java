@@ -128,6 +128,12 @@ public class SubmitReceiptActivity extends BaseActivity
                         for (DataSnapshot ds : dataSnapshot.getChildren()) {
                             String key = ds.getKey();
                             Number value = (Number) ds.getValue();
+                            Double doubleValue;
+                            if (value instanceof Long) {
+                                doubleValue = ((Long)value).doubleValue();
+                            } else {
+                                doubleValue = (Double)value;
+                            }
                             Log.d("appdebug", "onDataChange: spending: " + key);
                             Log.d("appdebug", "onDataChange: spending: " + value);
                             Log.d("appdebug", "onDataChange: spending: " + ds.getValue() + " " + ds.getValue().getClass());
@@ -266,6 +272,11 @@ public class SubmitReceiptActivity extends BaseActivity
 
                         Toast.makeText(SubmitReceiptActivity.this, "Receipt submit successful",
                                 Toast.LENGTH_SHORT).show();
+
+                        Intent intent = new Intent(SubmitReceiptActivity.this, LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
                     } else {
                         // Handle failures
                         Toast.makeText(SubmitReceiptActivity.this, "Photo upload failed",

@@ -88,6 +88,11 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickCreateGroup(View view) {
+        if (!GroupsHelper.isAdmin(groupsList)) {
+            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, CreateGroupActivity.class);
         startActivity(intent);
     }
@@ -118,11 +123,21 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickAdministerGroup(View view) {
+        if (!GroupsHelper.isAdmin(groupsList)) {
+            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, AdministerGroupActivity.class);
         startActivity(intent);
     }
 
     public void onClickAdministerCategory(View view) {
+        if (!GroupsHelper.isAdmin(groupsList)) {
+            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, AdministerCategoryActivity.class);
         startActivity(intent);
     }

@@ -112,6 +112,20 @@ public class GroupsHelper {
         return "";
     }
 
+    static boolean isAdmin(HashMap<String, Group> groups)
+    {
+        FirebaseAuth mAuth;
+        mAuth = FirebaseAuth.getInstance();
+
+        String groupAdmin = getGroupAdmin(groups);
+
+        if (groupAdmin.equals(mAuth.getCurrentUser().getUid())) {
+            return true;
+        }
+
+        return false;
+    }
+
     static boolean updateGroupName(HashMap<String, Group> groups, String name)
     {
         String myGroupName = getGroupName(groups);

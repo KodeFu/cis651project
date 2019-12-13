@@ -122,12 +122,24 @@ public class BaseActivity extends AppCompatActivity
         int id = menuItem.getItemId();
         switch (id) {
             case R.id.create_group:
+                if (!GroupsHelper.isAdmin(groupsList)) {
+                    Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 startActivity(new Intent(this, CreateGroupActivity.class));
                 break;
             case R.id.administer_group:
+                if (!GroupsHelper.isAdmin(groupsList)) {
+                    Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 startActivity(new Intent(this, AdministerGroupActivity.class));
                 break;
             case R.id.administer_category:
+                if (!GroupsHelper.isAdmin(groupsList)) {
+                    Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 startActivity(new Intent(this, AdministerCategoryActivity.class));
                 break;
             case R.id.join_group:

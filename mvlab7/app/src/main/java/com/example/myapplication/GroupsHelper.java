@@ -74,6 +74,22 @@ public class GroupsHelper {
         return "";
     }
 
+    // FIXME: Hacky and redundant with getGroupToken, but this one doesn't check for admin.
+    // FIXME: Consolidate and use this function instead.
+    static String getGroupUserToken(HashMap<String, Group> groups)
+    {
+        String myGroupName = getGroupName(groups);
+
+        // Only admin can see token; verbally conveyed to users
+        for (Map.Entry  g : groups.entrySet()) {
+            if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
+                return ((Group)g.getValue()).token;
+            }
+        }
+
+        return "";
+    }
+
     static String getGroupName(HashMap<String, Group> groups)
     {
         FirebaseAuth mAuth;
@@ -98,6 +114,8 @@ public class GroupsHelper {
         // Not an admin or member, so not part of a group
         return "";
     }
+
+
 
     static String getGroupAdmin(HashMap<String, Group> groups)
     {

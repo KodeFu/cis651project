@@ -1,7 +1,5 @@
 package com.example.myapplication;
 
-import android.util.Log;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -258,6 +256,9 @@ public class GroupsHelper {
             DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
             DatabaseReference groupsRef =  mRootReference.child("groups");
             groupsRef.setValue(groups);
+
+            DatabaseReference uidRef = mRootReference.child("users").child(uid);
+            uidRef.child("group").removeValue();
 
             return true;
         }

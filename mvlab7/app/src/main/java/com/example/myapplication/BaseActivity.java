@@ -13,10 +13,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -115,6 +117,43 @@ public class BaseActivity extends AppCompatActivity
         //drawerLayout.setDrawerListener(actionBarDrawerToggle);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
+
+        final TextView statusBarUser = findViewById(R.id.common_status_bar_user);
+        final TextView statusBarGroup = findViewById(R.id.common_status_bar_group);
+        if (statusBarUser != null) {
+            final DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+            final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            final DatabaseReference uidRef = rootRef.child("users").child(currentUser.getUid());
+
+            uidRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    final User u = dataSnapshot.getValue(User.class);
+                    statusBarUser.setText("User: " + u.displayName);
+                    if (u.group != null) {
+                        DatabaseReference groupRef = rootRef.child("groups").child(u.group).child("name");
+                        groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                statusBarGroup.setText("Group: " + dataSnapshot.getValue());
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                    } else {
+                        statusBarGroup.setText("Group: not in a group");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -9,6 +10,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -112,7 +115,7 @@ public class JoinGroupActivity extends BaseActivity {
         addMemberToGroup(groupsList, token.getText().toString());
     }
 
-    public void addMemberToGroup(HashMap<String, Group> groups, String token)
+    public void addMemberToGroup(HashMap<String, Group> groups, final String token)
     {
         for (Map.Entry g : groups.entrySet()) {
             if ( g.getKey().equals(token) ) {
@@ -135,8 +138,44 @@ public class JoinGroupActivity extends BaseActivity {
         }
 
         // Add groups node
-        DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+        final DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+
         DatabaseReference groupsRef =  mRootReference.child("groups");
-        groupsRef.setValue(groups);
+        groupsRef.setValue(groups).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    DatabaseReference uidRef = mRootReference.child("users").child(mAuth.getCurrentUser().getUid());
+                    uidRef.child("group").setValue(token).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(JoinGroupActivity.this, "Join Group successful",
+                                        Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(JoinGroupActivity.this, LoginActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(JoinGroupActivity.this, "Unable to save user to database",
+                                        Toast.LENGTH_SHORT).show();
+                                if (task.getException() != null) {
+                                    Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    Toast.makeText(JoinGroupActivity.this, "Unable to save group to database",
+                            Toast.LENGTH_SHORT).show();
+                    if (task.getException() != null) {
+                        Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
     }
 }

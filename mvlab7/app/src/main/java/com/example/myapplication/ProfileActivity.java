@@ -33,17 +33,19 @@ import com.google.firebase.storage.UploadTask;
 import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
-
 public class ProfileActivity extends BaseActivity {
     private static final int MY_PERMISSIONS_CAMERA = 111;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
 
     EditText email;
     EditText password;
     EditText displayName;
     ImageView ivProfilePhoto;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    FirebaseUser user;
     FirebaseStorage storage;
     byte[] profilePhotoByteArray;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +58,8 @@ public class ProfileActivity extends BaseActivity {
         displayName = findViewById(R.id.et_display_name);
         ivProfilePhoto = findViewById(R.id.iv_profile_photo);
 
+        user = FirebaseAuth.getInstance().getCurrentUser();
         storage = FirebaseStorage.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         email.setText(user.getEmail());
         displayName.setText(user.getDisplayName());
@@ -120,7 +122,12 @@ public class ProfileActivity extends BaseActivity {
 
     public void onClickSaveProfile(View view) {
         // https://firebase.google.com/docs/auth/android/manage-users
-        if (email.getText().toString().isEmpty() || displayName.getText().toString().isEmpty()) {
+        final String emailString = email.getText().toString().trim();
+        final String passwordString = password.getText().toString().trim();
+        final String displayNameString = displayName.getText().toString().trim();
+
+        if (emailString.isEmpty()
+                || displayNameString.isEmpty()) {
             Toast.makeText(ProfileActivity.this, "Email and DisplayName must be provided",
                     Toast.LENGTH_SHORT).show();
             return;
@@ -154,23 +161,22 @@ public class ProfileActivity extends BaseActivity {
                         Uri downloadUri = task.getResult();
                         Log.d("appdebug", downloadUri.toString());
 
-                        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         if (user!=null) {
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(displayName.getText().toString())
+                                    .setDisplayName(displayNameString)
                                     .setPhotoUri(downloadUri)
                                     .build();
                             user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
-                                        user.updateEmail(email.getText().toString())
+                                        user.updateEmail(emailString)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
                                                         if (task.isSuccessful()) {
-                                                            if (!password.getText().toString().isEmpty()) {
-                                                                user.updatePassword(password.getText().toString())
+                                                            if (!passwordString.isEmpty()) {
+                                                                user.updatePassword(passwordString)
                                                                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                             @Override
                                                                             public void onComplete(@NonNull Task<Void> task) {
@@ -236,22 +242,21 @@ public class ProfileActivity extends BaseActivity {
                 }
             });
         } else {
-            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user!=null) {
                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayName.getText().toString())
+                        .setDisplayName(displayNameString)
                         .build();
                 user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            user.updateEmail(email.getText().toString())
+                            user.updateEmail(emailString)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (task.isSuccessful()) {
-                                                if (!password.getText().toString().isEmpty()) {
-                                                    user.updatePassword(password.getText().toString())
+                                                if (!passwordString.isEmpty()) {
+                                                    user.updatePassword(passwordString)
                                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                 @Override
                                                                 public void onComplete(@NonNull Task<Void> task) {

@@ -237,7 +237,7 @@ public class SubmitReceiptActivity extends BaseActivity
         //Log.d("appdebug", "spending: category name is  " +  category.displayName);
 
         //  amount + monthlySummary <= monthlyLimit
-        int amount = Integer.parseInt(amountEditText.getText().toString());
+        Double amount = Double.parseDouble(amountEditText.getText().toString());
 
          // What is the monthly total so far?
         long monthlySummary = 0;

@@ -73,6 +73,12 @@ public class CreateGroupActivity extends BaseActivity {
     }
 
     public void onClickCreateGroup(View view) {
+        if (!GroupsHelper.isAdmin(groupsList)) {
+            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (GroupsHelper.createGroup(groupsList, groupName.getText().toString()))
         {
             Toast.makeText(getApplicationContext(), "Create Successful",
@@ -86,6 +92,12 @@ public class CreateGroupActivity extends BaseActivity {
     }
 
     public void onClickRemoveGroup(View view) {
+        if (!GroupsHelper.isAdmin(groupsList)) {
+            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         if (GroupsHelper.removeGroup(groupsList))
         {
             Toast.makeText(getApplicationContext(), "Remove Successful",

@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,9 +62,10 @@ public class SubmitReceiptActivity extends BaseActivity
     FirebaseStorage storage;
     byte[] receiptPhotoByteArray;
 
-    //HashMap<String, Group> groupsList = new HashMap<String, Group>();
     ArrayList<String> categoryList = new ArrayList<String>();
     ArrayAdapter adapterCategoriesList;
+
+    HashMap<String, Number> monthlySummaryList = new HashMap<String, Number>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,10 +136,9 @@ public class SubmitReceiptActivity extends BaseActivity
                             } else {
                                 doubleValue = (Double)value;
                             }
-                            Log.d("appdebug", "onDataChange: spending: " + key);
-                            Log.d("appdebug", "onDataChange: spending: " + value);
-                            Log.d("appdebug", "onDataChange: spending: " + ds.getValue() + " " + ds.getValue().getClass());
+                            Log.d("appdebug", "onDataChange: spending key:" + key + " value: " + value);
 
+                            monthlySummaryList.put(key, value);
                         }
                     }
 
@@ -216,7 +217,45 @@ public class SubmitReceiptActivity extends BaseActivity
         }
     }
 
-    public void onClickSubmitReceipt(View view) {
+    public void onClickSubmitReceipt(View view)
+    {
+        // Check if amount exists
+        if (amountEditText.getText().toString().equals("")) {
+            Toast.makeText(getApplicationContext(), "Amount Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Get category from spinner
+        if (categorySpinner.getSelectedItem() == null) {
+            Toast.makeText(getApplicationContext(), "No Category Specified", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String categoryName = categorySpinner.getSelectedItem().toString();
+        Category category = GroupsHelper.getCategory(groupsList, categoryName);
+        int categoryLimit = category.limit;
+        //Log.d("appdebug", "spending: category name is  " +  category.limit);
+        //Log.d("appdebug", "spending: category name is  " +  category.displayName);
+
+        //  amount + monthlySummary <= monthlyLimit
+        int amount = Integer.parseInt(amountEditText.getText().toString());
+
+         // What is the monthly total so far?
+        long monthlySummary = 0;
+         for (Map.Entry m : monthlySummaryList.entrySet()) {
+             Log.d("appdebug", "monthlySummaryList key=" + m.getKey() + " value=" + m.getValue());
+             if (m.getKey().equals(categoryName)) {
+                 monthlySummary = (long) m.getValue();
+             }
+         }
+
+        // Check if the new receipt can be submitted by checking if the AMOUNT + MONTHLY SUMMARY < MONTHLY LIMIT
+        // Note: If category.limit is -1, which means unlimited, then we can skip this check.
+        if ( (category.limit != -1) && (amount + monthlySummary) > category.limit )
+        {
+            Toast.makeText(getApplicationContext(), "Monthly Limit Exceeded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // https://firebase.google.com/docs/auth/android/manage-users
         if (receiptPhotoByteArray != null) {
             String path="images/"+ UUID.randomUUID()+".jpg";

@@ -88,11 +88,6 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickCreateGroup(View view) {
-        if (!GroupsHelper.isAdmin(groupsList)) {
-            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
         Intent intent = new Intent(this, CreateGroupActivity.class);
         startActivity(intent);
     }

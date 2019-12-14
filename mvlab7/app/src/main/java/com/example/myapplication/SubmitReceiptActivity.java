@@ -65,7 +65,7 @@ public class SubmitReceiptActivity extends BaseActivity
     ArrayList<String> categoryList = new ArrayList<String>();
     ArrayAdapter adapterCategoriesList;
 
-    HashMap<String, Number> monthlySummaryList = new HashMap<String, Number>();
+    HashMap<String, Double> monthlySummaryList = new HashMap<String, Double>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +138,7 @@ public class SubmitReceiptActivity extends BaseActivity
                             }
                             Log.d("appdebug", "onDataChange: spending key:" + key + " value: " + value);
 
-                            monthlySummaryList.put(key, value);
+                            monthlySummaryList.put(key, doubleValue);
                         }
                     }
 
@@ -240,13 +240,13 @@ public class SubmitReceiptActivity extends BaseActivity
         Double amount = Double.parseDouble(amountEditText.getText().toString());
 
          // What is the monthly total so far?
-        long monthlySummary = 0;
-         for (Map.Entry m : monthlySummaryList.entrySet()) {
-             Log.d("appdebug", "monthlySummaryList key=" + m.getKey() + " value=" + m.getValue());
-             if (m.getKey().equals(categoryName)) {
-                 monthlySummary = (long) m.getValue();
-             }
-         }
+        Double monthlySummary = 0.0;
+        for (Map.Entry m : monthlySummaryList.entrySet()) {
+            Log.d("appdebug", "monthlySummaryList key=" + m.getKey() + " value=" + m.getValue());
+            if (m.getKey().equals(categoryName)) {
+                monthlySummary = (Double)m.getValue();
+            }
+        }
 
         // Check if the new receipt can be submitted by checking if the AMOUNT + MONTHLY SUMMARY < MONTHLY LIMIT
         // Note: If category.limit is -1, which means unlimited, then we can skip this check.

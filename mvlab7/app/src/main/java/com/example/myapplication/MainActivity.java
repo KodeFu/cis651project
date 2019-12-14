@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,11 +23,21 @@ public class MainActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     DatabaseReference rootRef;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
+
+    ListView dashboardList;
+    String[] categoryList = {"apples", "oranges", "pears"};
+    String[] somethingElseList = {"dogs", "cats", "guinea pigs"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         buildNavDrawerAndToolbar();
+
+        // Dashboard code
+        CustomList adapter = new CustomList(this, categoryList, somethingElseList);
+        dashboardList = findViewById(R.id.dashboard_listview);
+        dashboardList.setAdapter(adapter);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -85,66 +96,6 @@ public class MainActivity extends BaseActivity {
                 Log.d("appdebug", "onCancelled");
             }
         });
-    }
-
-    public void onClickCreateGroup(View view) {
-        Intent intent = new Intent(this, CreateGroupActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickJoinGroup(View view) {
-        if (GroupsHelper.getGroupName(groupsList).equals("")) {
-            Intent intent = new Intent(this, JoinGroupActivity.class);
-            startActivity(intent);
-        }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "Already In A Group. Leave Group First.",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void onClickLeaveGroup(View view) {
-        if (GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid()))
-        {
-            Toast.makeText(getApplicationContext(), "Remove Successful",
-                    Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "Can Not Remove Member",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void onClickAdministerGroup(View view) {
-        if (!GroupsHelper.isAdmin(groupsList)) {
-            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent intent = new Intent(this, AdministerGroupActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickAdministerCategory(View view) {
-        if (!GroupsHelper.isAdmin(groupsList)) {
-            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent intent = new Intent(this, AdministerCategoryActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickViewSpending(View view) {
-        Intent intent = new Intent(this, ViewSpendingActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickSubmitReceipt(View view) {
-        Intent intent = new Intent(this, SubmitReceiptActivity.class);
-        startActivity(intent);
     }
 
 }

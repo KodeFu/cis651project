@@ -13,60 +13,27 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <include layout="@layout/common_toolbar"/>
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <Button
-                android:id="@+id/create_group_button"
+		<include layout="@layout/common_toolbar"/>
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical" >
+
+           <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="Monthly Spending Dashboard"
+               android:textSize="16dp"
+               android:textAlignment="center">
+           </TextView>
+            <ListView
+                android:id="@+id/dashboard_listview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                android:text="Create and Remove Group"
-                android:onClick="onClickCreateGroup"/>
-            <Button
-                android:id="@+id/administer_group_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/create_group_button"
-                android:text="Administer Group"
-                android:onClick="onClickAdministerGroup"/>
-            <Button
-                android:id="@+id/administer_category_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/administer_group_button"
-                android:text="Administer Category"
-                android:onClick="onClickAdministerCategory"/>
-            <Button
-                android:id="@+id/join_group_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/administer_category_button"
-                android:text="Join Group"
-                android:onClick="onClickJoinGroup"/>
-            <Button
-                android:id="@+id/leave_group_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/join_group_button"
-                android:text="Leave Group"
-                android:onClick="onClickLeaveGroup"/>
-            <Button
-                android:id="@+id/submit_receipt_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/leave_group_button"
-                android:text="Submit Receipt"
-                android:onClick="onClickSubmitReceipt"/>
-            <Button
-                android:id="@+id/view_spending_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/submit_receipt_button"
-                android:text="View Spending"
-                android:onClick="onClickViewSpending"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_weight="0">
+            </ListView>
+
+       </LinearLayout>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

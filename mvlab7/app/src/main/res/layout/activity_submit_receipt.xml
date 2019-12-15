@@ -16,7 +16,8 @@
         <include layout="@layout/common_toolbar"/>
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="0dp"
+            android:layout_weight="1">
             <TextView
                 android:id="@+id/caption_expense_date"
                 android:layout_width="0dp"
@@ -134,6 +135,7 @@
                 android:text="Submit Receipt"
                 android:onClick="onClickSubmitReceipt"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
+        <include layout="@layout/common_status_bar"/>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

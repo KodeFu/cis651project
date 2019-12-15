@@ -130,12 +130,12 @@
         </RelativeLayout>
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="0dp"
+            android:layout_weight="1">
             <TextView
                 android:id="@+id/text_view_token"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="70dp"
                 android:layout_above="@id/token"
                 android:textSize="20dp"
                 android:text="Group Token"/>
@@ -147,6 +147,7 @@
                 android:textSize="20dp"
                 android:hint="None"/>
         </RelativeLayout>
+        <include layout="@layout/common_status_bar"/>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

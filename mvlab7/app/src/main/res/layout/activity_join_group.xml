@@ -39,6 +39,12 @@
             android:layout_gravity="right"
             android:onClick="onClickJoinGroup"
             android:text="Join Group"/>
+        <TextView
+            android:id="@+id/filler"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <include layout="@layout/common_status_bar"/>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

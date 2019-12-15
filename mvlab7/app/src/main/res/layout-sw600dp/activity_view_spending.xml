@@ -33,6 +33,7 @@
                 android:layout_height="match_parent">
             </FrameLayout>
         </LinearLayout>
+        <include layout="@layout/common_status_bar"/>
     </LinearLayout>
     <include layout="@layout/common_navigation_view"/>
 

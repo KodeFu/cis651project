@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,11 +14,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-
 
 public class CreateGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
@@ -90,6 +89,11 @@ public class CreateGroupActivity extends BaseActivity {
                 {
                     Toast.makeText(getApplicationContext(), "Create Successful",
                             Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(CreateGroupActivity.this, LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
                 }
                 else
                 {
@@ -116,8 +120,13 @@ public class CreateGroupActivity extends BaseActivity {
         {
             Toast.makeText(getApplicationContext(), "Remove Successful",
                     Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(CreateGroupActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
         }
-            else
+        else
         {
             Toast.makeText(getApplicationContext(), "Can Not Remove Group",
                     Toast.LENGTH_SHORT).show();

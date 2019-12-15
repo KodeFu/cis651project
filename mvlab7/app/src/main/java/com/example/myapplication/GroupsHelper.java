@@ -1,7 +1,6 @@
 package com.example.myapplication;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -42,10 +41,14 @@ public class GroupsHelper {
 
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+
         DatabaseReference groupsRef =  mRootReference.child("groups");
         Random rand = new Random();
         g.token = Integer.toString(rand.nextInt(1000000));
         groupsRef.child(g.token).setValue(g);
+
+        DatabaseReference uidRef = mRootReference.child("users").child(user.uid);
+        uidRef.child("group").setValue(g.token);
 
         return true;
     }
@@ -160,14 +163,22 @@ public class GroupsHelper {
     {
         FirebaseAuth mAuth;
         mAuth = FirebaseAuth.getInstance();
+        DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
 
         // If admin of a group, return that
         for (Map.Entry  g : groups.entrySet()) {
-            if (((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+            Group databaseGroup = (Group)g.getValue();
+            if (databaseGroup.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+                for (Map.Entry m : databaseGroup.members.entrySet()) {
+                    Member databaseMember = (Member)m.getValue();
+                    databaseMember.uid = (String)m.getKey();
+
+                    DatabaseReference groupRef =  mRootReference.child("users").child(databaseMember.uid).child("group");
+                    groupRef.removeValue();
+                }
 
                 groups.remove(g.getKey());
 
-                DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
                 DatabaseReference groupsRef =  mRootReference.child("groups");
                 groupsRef.setValue(groups);
 
@@ -250,8 +261,8 @@ public class GroupsHelper {
             DatabaseReference groupsRef =  mRootReference.child("groups");
             groupsRef.setValue(groups);
 
-            DatabaseReference uidRef = mRootReference.child("users").child(uid);
-            uidRef.child("group").removeValue();
+            DatabaseReference groupRef = mRootReference.child("users").child(uid).child("group");
+            groupRef.removeValue();
 
             return true;
         }

@@ -164,9 +164,9 @@ public class BaseActivity extends AppCompatActivity
         int id = menuItem.getItemId();
         switch (id) {
             case R.id.home:
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                Intent homeIntent = new Intent(this, LoginActivity.class);
+                homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(homeIntent);
                 finish();
                 break;
             case R.id.create_group:
@@ -202,6 +202,11 @@ public class BaseActivity extends AppCompatActivity
                 {
                     Toast.makeText(getApplicationContext(), "Remove Successful",
                             Toast.LENGTH_SHORT).show();
+
+                    Intent leaveGroupIntent = new Intent(this, LoginActivity.class);
+                    leaveGroupIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(leaveGroupIntent);
+                    finish();
                 }
                 else
                 {

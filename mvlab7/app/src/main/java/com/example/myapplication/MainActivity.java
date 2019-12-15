@@ -163,13 +163,13 @@ public class MainActivity extends BaseActivity {
             Double limitValue =  Double.valueOf( ((Category)m.getValue()).limit );
 
             if (limitValue != -1 ) {
-                limit = String.format("$ %.2f", limitValue);
+                limit = String.format("%.2f", limitValue);
             }
 
 
             if (monthlySummaryList.containsKey(name)) {
                 Double summaryValue = (Double) monthlySummaryList.get(name);
-                String summary = String.format("$ %.2f", summaryValue);
+                String summary = String.format("%.2f", summaryValue);
 
                 categoryList.add(name);
                 limitList.add(limit);

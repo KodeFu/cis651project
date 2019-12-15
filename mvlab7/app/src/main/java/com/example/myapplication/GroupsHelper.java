@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class GroupsHelper {
 
-    static boolean createGroup(HashMap<String, Group> groups, String name)
+    static boolean createGroup(User user, HashMap<String, Group> groups, String name)
     {
         String currentGroupName = getGroupName(groups);
         if (!currentGroupName.equals("") || name.equals("")) {
@@ -22,30 +22,23 @@ public class GroupsHelper {
         Group g = new Group();
         Category c = new Category();
 
-        FirebaseAuth mAuth;
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        String currentUid = currentUser.getUid();
-        String currentName = currentUser.getDisplayName();
-
-        // Group info
         g.name = name;
-        g.adminUid = currentUid;
+        g.adminUid = user.uid;
 
         // Member info
         g.members = new HashMap<String, Member>();
-        g.members.put(currentUid, new Member(currentUid, currentName));
+        g.members.put(user.uid, new Member(user.uid, user.displayName));
 
         // Category info
         g.categories = new HashMap<String, Category>();
-        g.categories.put(currentUid, new Category(currentUid, currentName, -1));
+        g.categories.put(user.uid, new Category(user.uid, user.displayName, -1));
         g.categories.put("Groceries", new Category("Groceries", "Groceries", -1));
-        g.categories.put("School", new Category(currentUid, "School", -1));
-        g.categories.put("Automobile", new Category(currentUid, "Automobile", -1));
-        g.categories.put("Home Improvement", new Category(currentUid, "Home Improvement", -1));
-        g.categories.put("Dining", new Category(currentUid, "Dining", -1));
-        g.categories.put("Entertainment", new Category(currentUid, "Entertainment", -1));
-        g.categories.put("Gifts", new Category(currentUid, "Gifts", -1));
+        g.categories.put("School", new Category(user.uid, "School", -1));
+        g.categories.put("Automobile", new Category(user.uid, "Automobile", -1));
+        g.categories.put("Home Improvement", new Category(user.uid, "Home Improvement", -1));
+        g.categories.put("Dining", new Category(user.uid, "Dining", -1));
+        g.categories.put("Entertainment", new Category(user.uid, "Entertainment", -1));
+        g.categories.put("Gifts", new Category(user.uid, "Gifts", -1));
 
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();

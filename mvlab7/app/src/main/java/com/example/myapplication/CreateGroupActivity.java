@@ -21,8 +21,6 @@ import java.util.HashMap;
 
 public class CreateGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
-    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
-    DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     EditText groupName;
     TextView token;
@@ -36,7 +34,7 @@ public class CreateGroupActivity extends BaseActivity {
         groupName = findViewById(R.id.group_name);
         token = findViewById(R.id.token);
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 groupsList.clear();
@@ -79,16 +77,30 @@ public class CreateGroupActivity extends BaseActivity {
             return;
         }
 
-        if (GroupsHelper.createGroup(groupsList, groupName.getText().toString()))
-        {
-            Toast.makeText(getApplicationContext(), "Create Successful",
-                    Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "Can Not Create Group",
-                    Toast.LENGTH_SHORT).show();
-        }
+        final String currentUid = mAuth.getCurrentUser().getUid();
+        DatabaseReference userRef = mRootReference.child("users").child(currentUid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User u = dataSnapshot.getValue(User.class);
+                u.uid = dataSnapshot.getKey();
+                if (GroupsHelper.createGroup(u, groupsList, groupName.getText().toString()))
+                {
+                    Toast.makeText(getApplicationContext(), "Create Successful",
+                            Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Can Not Create Group",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void onClickRemoveGroup(View view) {

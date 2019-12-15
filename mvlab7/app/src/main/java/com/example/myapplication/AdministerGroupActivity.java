@@ -14,8 +14,6 @@ import androidx.annotation.NonNull;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -24,8 +22,6 @@ import java.util.Map;
 
 public class AdministerGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
-    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
-    DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     ArrayList<String> membersList = new ArrayList<String>();
     ArrayAdapter adapterMembersList;
@@ -41,7 +37,7 @@ public class AdministerGroupActivity extends BaseActivity {
         Spinner members = (Spinner) findViewById(R.id.members);
         members.setAdapter(adapterMembersList);
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 groupsList.clear();

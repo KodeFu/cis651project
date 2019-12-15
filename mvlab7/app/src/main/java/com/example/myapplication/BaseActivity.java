@@ -32,8 +32,8 @@ public class BaseActivity extends AppCompatActivity
 
     private DrawerLayout drawerLayout;
     private FirebaseAuth mAuth;
-    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
-    DatabaseReference groupsRef =  mRootReference;
+    DatabaseReference mRootReference;
+    DatabaseReference groupsRef;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
 
     @Override
@@ -41,8 +41,10 @@ public class BaseActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         mAuth = FirebaseAuth.getInstance();
+        mRootReference = FirebaseDatabase.getInstance().getReference();
+        groupsRef = mRootReference.child("groups");
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 groupsList.clear();
@@ -129,6 +131,7 @@ public class BaseActivity extends AppCompatActivity
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     final User u = dataSnapshot.getValue(User.class);
+                    u.uid = dataSnapshot.getKey();
                     statusBarUser.setText("User: " + u.displayName);
                     if (u.group != null) {
                         DatabaseReference groupRef = rootRef.child("groups").child(u.group).child("name");

@@ -24,7 +24,6 @@ import java.util.Map;
 
 public class MainActivity extends BaseActivity {
     private FirebaseAuth mAuth;
-    DatabaseReference rootRef;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     HashMap<String, Double> monthlySummaryList = new HashMap<String, Double>();
 
@@ -49,9 +48,7 @@ public class MainActivity extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
 
         final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        rootRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference groupsRef =  rootRef;
-        DatabaseReference userRef = rootRef.child("users/" + currentUser.getUid());
+        DatabaseReference userRef = mRootReference.child("users/" + currentUser.getUid());
 
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -84,7 +81,7 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 groupsList.clear();

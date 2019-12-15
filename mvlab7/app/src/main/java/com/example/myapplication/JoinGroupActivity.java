@@ -18,14 +18,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class JoinGroupActivity extends BaseActivity {
     private FirebaseAuth mAuth;
-    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
-    DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     EditText token;
     @Override
@@ -130,17 +129,28 @@ public class JoinGroupActivity extends BaseActivity {
                 }
 
                 // Add user
-                Member m = new Member();
+                final Member m = new Member();
                 m.uid = mAuth.getCurrentUser().getUid();
-                m.displayName = mAuth.getCurrentUser().getDisplayName();
-                ((Group)g.getValue()).members.put(m.uid, m);
+                DatabaseReference userRef = mRootReference.child("users").child(m.uid);
+                final Group group = ((Group)g.getValue());
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        User u = dataSnapshot.getValue(User.class);
+                        u.uid = dataSnapshot.getKey();
+                        m.displayName = u.displayName;
+                        group.members.put(m.uid, m);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
             }
         }
 
         // Add groups node
-        final DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-
-        DatabaseReference groupsRef =  mRootReference.child("groups");
         groupsRef.setValue(groups).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

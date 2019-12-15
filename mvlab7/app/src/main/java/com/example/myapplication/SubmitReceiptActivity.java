@@ -79,7 +79,20 @@ public class SubmitReceiptActivity extends BaseActivity
         descriptionEditText = findViewById(R.id.et_description);
         ivReceiptPhoto = findViewById(R.id.iv_receipt);
 
-        userDisplayName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        DatabaseReference userRef = mRootReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User u = dataSnapshot.getValue(User.class);
+                u.uid = dataSnapshot.getKey();
+                userDisplayName = u.displayName;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
         categorySpinner.setAdapter(adapterCategoriesList);
@@ -105,7 +118,7 @@ public class SubmitReceiptActivity extends BaseActivity
 
         storage = FirebaseStorage.getInstance();
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.d("appdebug", "onDataChange: ");

@@ -26,6 +26,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -42,7 +46,7 @@ public class ProfileActivity extends BaseActivity {
     EditText displayName;
     ImageView ivProfilePhoto;
 
-    FirebaseUser user;
+    FirebaseUser currentUser;
     FirebaseStorage storage;
     byte[] profilePhotoByteArray;
 
@@ -58,15 +62,25 @@ public class ProfileActivity extends BaseActivity {
         displayName = findViewById(R.id.et_display_name);
         ivProfilePhoto = findViewById(R.id.iv_profile_photo);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
         storage = FirebaseStorage.getInstance();
 
-        email.setText(user.getEmail());
-        displayName.setText(user.getDisplayName());
-        Glide
-                .with(this)
-                .load(user.getPhotoUrl())
-                .into(ivProfilePhoto);
+        DatabaseReference userRef = mRootReference.child("users").child(currentUser.getUid());
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User u = dataSnapshot.getValue(User.class);
+                u.uid = dataSnapshot.getKey();
+                email.setText(u.email);
+                displayName.setText(u.displayName);
+                Glide.with(ProfileActivity.this).load(u.profilePhotoUri).into(ivProfilePhoto);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void onClickTakePhoto(View view) {
@@ -116,6 +130,7 @@ public class ProfileActivity extends BaseActivity {
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             profilePhotoByteArray = stream.toByteArray();
             Bitmap compressedBitmap = BitmapFactory.decodeByteArray(profilePhotoByteArray,0, profilePhotoByteArray.length);
+            Glide.with(this).clear(ivProfilePhoto);
             ivProfilePhoto.setImageBitmap(compressedBitmap);
         }
     }
@@ -158,79 +173,9 @@ public class ProfileActivity extends BaseActivity {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
+                        final Uri downloadUri = task.getResult();
                         Log.d("appdebug", downloadUri.toString());
-
-                        if (user!=null) {
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(displayNameString)
-                                    .setPhotoUri(downloadUri)
-                                    .build();
-                            user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        user.updateEmail(emailString)
-                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        if (task.isSuccessful()) {
-                                                            if (!passwordString.isEmpty()) {
-                                                                user.updatePassword(passwordString)
-                                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                            @Override
-                                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                                if (task.isSuccessful()) {
-                                                                                    Toast.makeText(ProfileActivity.this, "Profile save successful",
-                                                                                            Toast.LENGTH_SHORT).show();
-
-                                                                                    Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-                                                                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                                    startActivity(intent);
-                                                                                    finish();
-                                                                                } else {
-                                                                                    Toast.makeText(ProfileActivity.this, "Unable to update password",
-                                                                                            Toast.LENGTH_SHORT).show();
-                                                                                    if (task.getException() != null) {
-                                                                                        Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
-                                                                                                Toast.LENGTH_SHORT).show();
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        });
-                                                            } else {
-                                                                Toast.makeText(ProfileActivity.this, "Profile save successful",
-                                                                        Toast.LENGTH_SHORT).show();
-
-                                                                Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-                                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                startActivity(intent);
-                                                                finish();
-                                                            }
-                                                        } else {
-                                                            Toast.makeText(ProfileActivity.this, "Unable to update email",
-                                                                    Toast.LENGTH_SHORT).show();
-                                                            if (task.getException() != null) {
-                                                                Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
-                                                                        Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                    } else {
-                                        Toast.makeText(ProfileActivity.this, "Unable to update Display Name and Photo URI",
-                                                Toast.LENGTH_SHORT).show();
-                                        if (task.getException() != null) {
-                                            Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                }
-                            });
-                        } else {
-                            Toast.makeText(ProfileActivity.this, "Unable to obtain profile user from database",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                        UpdateCurrentUserInDatabase(emailString, passwordString, displayNameString, downloadUri.toString());
                     } else {
                         Toast.makeText(ProfileActivity.this, "Unable to save photo",
                                 Toast.LENGTH_SHORT).show();
@@ -242,43 +187,32 @@ public class ProfileActivity extends BaseActivity {
                 }
             });
         } else {
-            if (user!=null) {
-                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayNameString)
-                        .build();
-                user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            user.updateEmail(emailString)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                if (!passwordString.isEmpty()) {
-                                                    user.updatePassword(passwordString)
-                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                @Override
-                                                                public void onComplete(@NonNull Task<Void> task) {
-                                                                    if (task.isSuccessful()) {
-                                                                        Toast.makeText(ProfileActivity.this, "Profile save successful",
-                                                                                Toast.LENGTH_SHORT).show();
+            UpdateCurrentUserInDatabase(emailString, passwordString, displayNameString, null);
+        }
+    }
 
-                                                                        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-                                                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                        startActivity(intent);
-                                                                        finish();
-                                                                    } else {
-                                                                        Toast.makeText(ProfileActivity.this, "Unable to update password",
-                                                                                Toast.LENGTH_SHORT).show();
-                                                                        if (task.getException() != null) {
-                                                                            Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
-                                                                                    Toast.LENGTH_SHORT).show();
-                                                                        }
-                                                                    }
-                                                                }
-                                                            });
-                                                } else {
+    void UpdateCurrentUserInDatabase(final String email, final String password, final String displayName, final String profilePhotoUri) {
+        if (currentUser!=null) {
+            final DatabaseReference userRef = mRootReference.child("users").child(currentUser.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User u = dataSnapshot.getValue(User.class);
+                    u.uid = dataSnapshot.getKey();
+                    u.email = email;
+                    u.displayName = displayName;
+                    if (profilePhotoUri != null) {
+                        u.profilePhotoUri = profilePhotoUri;
+                    }
+                    userRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (!password.isEmpty()) {
+                                currentUser.updatePassword(password)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
                                                     Toast.makeText(ProfileActivity.this, "Profile save successful",
                                                             Toast.LENGTH_SHORT).show();
 
@@ -286,31 +220,36 @@ public class ProfileActivity extends BaseActivity {
                                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                                     startActivity(intent);
                                                     finish();
-                                                }
-                                            } else {
-                                                Toast.makeText(ProfileActivity.this, "Unable to update email",
-                                                        Toast.LENGTH_SHORT).show();
-                                                if (task.getException() != null) {
-                                                    Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
+                                                } else {
+                                                    Toast.makeText(ProfileActivity.this, "Unable to update password",
                                                             Toast.LENGTH_SHORT).show();
+                                                    if (task.getException() != null) {
+                                                        Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
+                                                                Toast.LENGTH_SHORT).show();
+                                                    }
                                                 }
                                             }
-                                        }
-                                    });
-                        } else {
-                            Toast.makeText(ProfileActivity.this, "Unable to update Display Name",
-                                    Toast.LENGTH_SHORT).show();
-                            if (task.getException() != null) {
-                                Toast.makeText(ProfileActivity.this, task.getException().getMessage(),
+                                        });
+                            } else {
+                                Toast.makeText(ProfileActivity.this, "Profile save successful",
                                         Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
                             }
                         }
-                    }
-                });
-            } else {
-                Toast.makeText(ProfileActivity.this, "Unable to obtain profile user from database",
-                        Toast.LENGTH_SHORT).show();
-            }
+                    });
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            Toast.makeText(ProfileActivity.this, "Unable to obtain profile user from database",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 }

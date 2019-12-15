@@ -1,7 +1,6 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -16,8 +15,6 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -26,8 +23,6 @@ import java.util.Map;
 
 public class AdministerCategoryActivity extends BaseActivity {
     private FirebaseAuth mAuth;
-    DatabaseReference mRootReference= FirebaseDatabase.getInstance().getReference();
-    DatabaseReference groupsRef =  mRootReference;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
     ArrayList<String> categoryList = new ArrayList<String>();
     ArrayAdapter adapterCategoriesList;
@@ -71,7 +66,7 @@ public class AdministerCategoryActivity extends BaseActivity {
 
         });
 
-        groupsRef.child("groups").addValueEventListener(new ValueEventListener() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.d("appdebug", "onDataChange: ");

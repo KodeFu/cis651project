@@ -12,11 +12,14 @@ public class User {
 
     public String group;
 
+    public String profilePhotoUri;
+
     public User() {}
 
-    public User(String displayName, String email, String group) {
+    public User(String displayName, String email, String group, String profilePhotoUri) {
         this.displayName = displayName;
         this.email = email;
         this.group = group;
+        this.profilePhotoUri = profilePhotoUri;
     }
 }

@@ -97,6 +97,7 @@ public class ExpenseListFragment extends Fragment
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 Spending s = dataSnapshot.getValue(Spending.class);
+                                s.token = dataSnapshot.getKey();
                                 Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
 
                                 for (Map.Entry y : s.receipts.entrySet()) {

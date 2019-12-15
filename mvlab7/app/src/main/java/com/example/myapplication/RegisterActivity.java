@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -27,8 +28,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -46,7 +50,7 @@ public class RegisterActivity extends AppCompatActivity {
     ImageView ivProfilePhoto;
 
     FirebaseAuth mAuth;
-    FirebaseUser user;
+    FirebaseUser currentUser;
     FirebaseStorage storage;
     byte[] profilePhotoByteArray;
 
@@ -152,7 +156,7 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         Log.d("appdebug", "createUserWithEmail:success");
-                        user = mAuth.getCurrentUser();
+                        currentUser = mAuth.getCurrentUser();
                         Toast.makeText(RegisterActivity.this, "Authentication succeeded.",
                                 Toast.LENGTH_SHORT).show();
                         SendVerification();
@@ -183,50 +187,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     Uri downloadUri = task.getResult();
                                     Log.d("appdebug", downloadUri.toString());
-
-                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                            .setDisplayName(displayName)
-                                            .setPhotoUri(downloadUri)
-                                            .build();
-                                    user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                User newUser = new User();
-                                                newUser.email = email;
-                                                newUser.displayName = displayName;
-                                                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("/users");
-                                                usersRef.child(user.getUid()).setValue(newUser).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        if (task.isSuccessful()) {
-                                                            Toast.makeText(RegisterActivity.this, "Profile save successful",
-                                                                    Toast.LENGTH_SHORT).show();
-
-                                                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                            startActivity(intent);
-                                                            finish();
-                                                        } else {
-                                                            Toast.makeText(RegisterActivity.this, "Unable to save user to database",
-                                                                    Toast.LENGTH_SHORT).show();
-                                                            if (task.getException() != null) {
-                                                                Toast.makeText(RegisterActivity.this, task.getException().getMessage(),
-                                                                        Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            } else {
-                                                Toast.makeText(RegisterActivity.this, "Unable to update Display Name and Photo URI",
-                                                        Toast.LENGTH_SHORT).show();
-                                                if (task.getException() != null) {
-                                                    Toast.makeText(RegisterActivity.this, task.getException().getMessage(),
-                                                            Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        }
-                                    });
+                                    UpdateCurrentUserInDatabase(email, displayName, downloadUri.toString());
                                 } else {
                                     Toast.makeText(RegisterActivity.this, "Unable to save photo",
                                             Toast.LENGTH_SHORT).show();
@@ -243,15 +204,56 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.d("appdebug", "Failure:"+e.getMessage());
-                        user = mAuth.getCurrentUser();
+                        currentUser = mAuth.getCurrentUser();
                         Toast.makeText(RegisterActivity.this, "Failure:"+e.getMessage(),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
+    void UpdateCurrentUserInDatabase(final String email, final String displayName, final String profilePhotoUri) {
+        if (currentUser!=null) {
+            DatabaseReference rootReference = FirebaseDatabase.getInstance().getReference();
+            final DatabaseReference userRef = rootReference.child("users").child(currentUser.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User u = new User(email, displayName, null, profilePhotoUri);
+                    userRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(RegisterActivity.this, "Profile save successful",
+                                        Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(RegisterActivity.this, "Unable to save user to database",
+                                        Toast.LENGTH_SHORT).show();
+                                if (task.getException() != null) {
+                                    Toast.makeText(RegisterActivity.this, task.getException().getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    });
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            Toast.makeText(RegisterActivity.this, "Unable to obtain profile user from database",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void SendVerification(){
-        user.sendEmailVerification()
+        currentUser.sendEmailVerification()
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {

@@ -73,8 +73,10 @@ public class CreateGroupActivity extends BaseActivity {
     }
 
     public void onClickCreateGroup(View view) {
-        if (!GroupsHelper.isAdmin(groupsList)) {
-            Toast.makeText(getApplicationContext(), "Must be Administrator of the Group",
+        String myGroup = GroupsHelper.getGroupName(groupsList);
+
+        if ( !myGroup.equals("") ) {
+            Toast.makeText(getApplicationContext(), "Already in a Group",
                     Toast.LENGTH_SHORT).show();
             return;
         }

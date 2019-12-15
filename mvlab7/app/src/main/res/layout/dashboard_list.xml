@@ -11,7 +11,7 @@
         <LinearLayout
             android:layout_width="150dp"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:textAlignment="center">
 
             <TextView
@@ -22,6 +22,17 @@
                 android:layout_marginTop="10dp"
                 android:textSize="16dp"
                 android:hint="Name"/>
+            <ProgressBar
+                android:id="@+id/spending_progress"
+                android:layout_width="100dp"
+                android:layout_height="5dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="3dp"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:progress="1"
+                android:max="10"
+                >
+            </ProgressBar>
         </LinearLayout>
 
         <LinearLayout

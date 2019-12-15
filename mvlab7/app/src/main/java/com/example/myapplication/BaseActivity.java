@@ -170,10 +170,6 @@ public class BaseActivity extends AppCompatActivity
                 finish();
                 break;
             case R.id.create_group:
-                if (!GroupsHelper.isAdmin(groupsList)) {
-                    Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
-                    break;
-                }
                 startActivity(new Intent(this, CreateGroupActivity.class));
                 break;
             case R.id.administer_group:

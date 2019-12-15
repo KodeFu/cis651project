@@ -10,15 +10,19 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+
 public class CustomList extends ArrayAdapter<String> {
     private final Context context;
-    private final String[] names;
-    private final String[] somethingElses;
-    public CustomList(@NonNull Context context, String[] names, String[] somethingElses) {
+    private final ArrayList<String> names;
+    private final ArrayList<String> limits;
+    private final ArrayList<String> summaries;
+    public CustomList(@NonNull Context context, ArrayList<String> names, ArrayList<String> limits, ArrayList<String> summaries) {
         super(context, R.layout.dashboard_list, names); // why names?
         this.context = context;
         this.names = names;
-        this.somethingElses = somethingElses;
+        this.limits = limits;
+        this.summaries = summaries;
     }
 
     @Override
@@ -26,9 +30,12 @@ public class CustomList extends ArrayAdapter<String> {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View linear_layout = inflater.inflate(R.layout.dashboard_list, null, true);
         TextView name = linear_layout.findViewById(R.id.name);
-        TextView somethingElse = linear_layout.findViewById(R.id.somethingElse);
-        name.setText(names[position]);
-        somethingElse.setText(somethingElses[position]);
+        TextView limit = linear_layout.findViewById(R.id.limit);
+        TextView summary = linear_layout.findViewById(R.id.summary);
+        name.setText(names.get(position));
+        limit.setText(limits.get(position));
+        summary.setText(summaries.get(position));
+
         return  linear_layout;
     }
 }

@@ -17,16 +17,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     DatabaseReference rootRef;
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
+    HashMap<String, Double> monthlySummaryList = new HashMap<String, Double>();
 
     ListView dashboardList;
-    String[] categoryList = {"apples", "oranges", "pears"};
-    String[] somethingElseList = {"dogs", "cats", "guinea pigs"};
+    CustomList adapterCategoriesList;
+    ArrayList<String> categoryList = new ArrayList<String>();
+    ArrayList<String> limitList = new ArrayList<String>();
+    ArrayList<String> summaryList = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +41,10 @@ public class MainActivity extends BaseActivity {
         buildNavDrawerAndToolbar();
 
         // Dashboard code
-        CustomList adapter = new CustomList(this, categoryList, somethingElseList);
+        adapterCategoriesList = new CustomList(this, categoryList, limitList, summaryList);
         dashboardList = findViewById(R.id.dashboard_listview);
-        dashboardList.setAdapter(adapter);
+        dashboardList.setAdapter(adapterCategoriesList);
+
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -87,15 +94,96 @@ public class MainActivity extends BaseActivity {
                     g.token = child;
                     groupsList.put(child, g);
 
-                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                    Log.d("appdebug", "main addchild: " + child + " " + ds.getValue());
                 }
+
+
+                final Calendar calendar = Calendar.getInstance();
+                int yy = calendar.get(Calendar.YEAR);
+                int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
+
+                String myGroup = GroupsHelper.getGroupUserToken(groupsList);
+                String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
+                Log.d("appdebug", "db path is " + path);
+
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference dbRef = database.getReference(path);
+
+                dbRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
+
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            String key = ds.getKey();
+                            Number value = (Number) ds.getValue();
+                            Double doubleValue;
+                            if (value instanceof Long) {
+                                doubleValue = ((Long)value).doubleValue();
+                            } else {
+                                doubleValue = (Double)value;
+                            }
+                            Log.d("appdebug", "onDataChange: spending key:" + key + " value: " + value);
+
+                            monthlySummaryList.put(key, doubleValue);
+                        }
+
+                        updateUI();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.d("appdebug", "spending onCancelled");
+                    }
+                });
+
+                //updateUI();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d("appdebug", "onCancelled");
             }
+
         });
+    }
+
+    void updateUI()
+    {
+        Log.d("appdebug", "updateUI");
+        Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
+        categoryList.clear();
+        limitList.clear();
+        summaryList.clear();
+
+        for (Map.Entry m : groupCategoryList.entrySet())
+        {
+            String name = ((Category)m.getValue()).displayName;
+            String limit = "Unlimited";
+            Double limitValue =  Double.valueOf( ((Category)m.getValue()).limit );
+
+            if (limitValue != -1 ) {
+                limit = String.format("$ %.2f", limitValue);
+            }
+
+
+            if (monthlySummaryList.containsKey(name)) {
+                Double summaryValue = (Double) monthlySummaryList.get(name);
+                String summary = String.format("$ %.2f", summaryValue);
+
+                categoryList.add(name);
+                limitList.add(limit);
+                summaryList.add(summary);
+
+                Log.d("appdebug", "updateUI: " + name + " " + summary);
+            }
+            else
+            {
+                Log.d("appdebug", "updateUI: KEY NOT CONTAINED" + name);
+            }
+        }
+
+        adapterCategoriesList.notifyDataSetChanged();
     }
 
 }

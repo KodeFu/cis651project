@@ -79,8 +79,8 @@ public class CreateGroupActivity extends BaseActivity {
         }
 
         final String currentUid = mAuth.getCurrentUser().getUid();
-        DatabaseReference userRef = mRootReference.child("users").child(currentUid);
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference usersRef = mRootReference.child("users").child(currentUid);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);

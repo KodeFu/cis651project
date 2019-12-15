@@ -8,7 +8,9 @@
     <ImageView
         android:id="@+id/iv_profile_photo"
         android:layout_width="50dp"
-        android:layout_height="50dp"/>
+        android:layout_height="50dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"/>
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="0dp"

@@ -29,8 +29,9 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="3dp"
                 style="@android:style/Widget.ProgressBar.Horizontal"
-                android:progress="1"
-                android:max="10"
+                android:progress="0"
+                android:min="0"
+                android:max="100"
                 >
             </ProgressBar>
         </LinearLayout>

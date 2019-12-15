@@ -61,14 +61,15 @@ public class ViewSpendingActivity extends BaseActivity
     }
 
     @Override
-    public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description) {
+    public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description, String receipt) {
         Bundle args = new Bundle();
         args.putString("date", date);
         args.putString("name", name);
         args.putString("category", category);
         args.putString("amount", amount);
         args.putString("description", description);
-        Fragment expenseDetailFragment = new ExpenseDetailFragment();
+        args.putString("receipt", receipt);
+        Fragment expenseDetailFragment = new ExpenseDetailFragment(this);
         expenseDetailFragment.setArguments(args);
 
         if (twoPane) {

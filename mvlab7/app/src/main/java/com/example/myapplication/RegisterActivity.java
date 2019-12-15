@@ -214,12 +214,12 @@ public class RegisterActivity extends AppCompatActivity {
     void UpdateCurrentUserInDatabase(final String email, final String displayName, final String profilePhotoUri) {
         if (currentUser!=null) {
             DatabaseReference rootReference = FirebaseDatabase.getInstance().getReference();
-            final DatabaseReference userRef = rootReference.child("users").child(currentUser.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            final DatabaseReference usersRef = rootReference.child("users").child(currentUser.getUid());
+            usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     User u = new User(email, displayName, null, profilePhotoUri);
-                    userRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    usersRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {

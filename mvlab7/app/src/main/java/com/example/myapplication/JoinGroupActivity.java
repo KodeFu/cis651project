@@ -131,8 +131,8 @@ public class JoinGroupActivity extends BaseActivity {
                 final Member m = new Member();
                 m.uid = mAuth.getCurrentUser().getUid();
                 final Group group = ((Group)g.getValue());
-                DatabaseReference userRef = mRootReference.child("users").child(m.uid);
-                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                DatabaseReference usersRef = mRootReference.child("users").child(m.uid);
+                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         User u = dataSnapshot.getValue(User.class);

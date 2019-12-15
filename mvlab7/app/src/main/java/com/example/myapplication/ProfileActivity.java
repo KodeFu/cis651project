@@ -65,8 +65,8 @@ public class ProfileActivity extends BaseActivity {
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         storage = FirebaseStorage.getInstance();
 
-        DatabaseReference userRef = mRootReference.child("users").child(currentUser.getUid());
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference usersRef = mRootReference.child("users").child(currentUser.getUid());
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);
@@ -193,8 +193,8 @@ public class ProfileActivity extends BaseActivity {
 
     void UpdateCurrentUserInDatabase(final String email, final String password, final String displayName, final String profilePhotoUri) {
         if (currentUser!=null) {
-            final DatabaseReference userRef = mRootReference.child("users").child(currentUser.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            final DatabaseReference usersRef = mRootReference.child("users").child(currentUser.getUid());
+            usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     User u = dataSnapshot.getValue(User.class);
@@ -204,7 +204,7 @@ public class ProfileActivity extends BaseActivity {
                     if (profilePhotoUri != null) {
                         u.profilePhotoUri = profilePhotoUri;
                     }
-                    userRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    usersRef.setValue(u).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (!password.isEmpty()) {

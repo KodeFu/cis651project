@@ -6,7 +6,7 @@ public class Receipt {
     public Long date;
     public String description;
     public String receipt;
-    public String user;
+    public String userUid;
 
     public Receipt() {}
 }

@@ -1,35 +1,39 @@
 package com.example.myapplication;
 
 public class ExpenseAdapterItem {
-    private int profilePhoto;
+    private String profilePhotoUri;
     private String date;
     private String name;
     private String category;
     private String amount;
     private String description;
 
+    private String receiptPhotoUri;
+
     public ExpenseAdapterItem(
-            int profilePhoto,
+            String profilePhotoUri,
             String date,
             String name,
             String category,
             String amount,
-            String description
+            String description,
+            String receiptPhotoUri
     ) {
-        this.profilePhoto = profilePhoto;
+        this.profilePhotoUri = profilePhotoUri;
         this.date = date;
         this.name = name;
         this.category = category;
         this.amount = amount;
         this.description = description;
+        this.receiptPhotoUri = receiptPhotoUri;
     }
 
-    public int getProfilePhoto() {
-        return profilePhoto;
+    public String getProfilePhotoUri() {
+        return profilePhotoUri;
     }
 
-    public void setProfilePhoto(int profilePhoto) {
-        this.profilePhoto = profilePhoto;
+    public void setProfilePhotoUri(String profilePhotoUri) {
+        this.profilePhotoUri = profilePhotoUri;
     }
 
     public String getDate() {
@@ -70,5 +74,13 @@ public class ExpenseAdapterItem {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getReceiptPhotoUri() {
+        return receiptPhotoUri;
+    }
+
+    public void setReceiptPhotoUri(String receiptPhotoUri) {
+        this.receiptPhotoUri = receiptPhotoUri;
     }
 }

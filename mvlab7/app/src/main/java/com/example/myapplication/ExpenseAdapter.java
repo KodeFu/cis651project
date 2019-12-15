@@ -11,6 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class ExpenseAdapter extends ArrayAdapter<ExpenseAdapterItem> {
         ExpenseAdapterItem currentExpense = expenseList.get(position);
 
         ImageView image = (ImageView)listItem.findViewById(R.id.iv_profile_photo);
-        image.setImageResource(currentExpense.getProfilePhoto());
+        Glide.with(context).load(currentExpense.getProfilePhotoUri()).into(image);
 
         TextView date = (TextView) listItem.findViewById(R.id.tv_date);
         date.setText(currentExpense.getDate());

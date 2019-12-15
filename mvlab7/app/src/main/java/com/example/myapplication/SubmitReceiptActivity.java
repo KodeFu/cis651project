@@ -48,7 +48,7 @@ import java.util.UUID;
 public class SubmitReceiptActivity extends BaseActivity
         implements DatePickerDialog.OnDateSetListener {
 
-    private String userDisplayName;
+    private String currentUid;
 
     private static final int MY_PERMISSIONS_CAMERA = 111;
 
@@ -79,20 +79,7 @@ public class SubmitReceiptActivity extends BaseActivity
         descriptionEditText = findViewById(R.id.et_description);
         ivReceiptPhoto = findViewById(R.id.iv_receipt);
 
-        DatabaseReference userRef = mRootReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                User u = dataSnapshot.getValue(User.class);
-                u.uid = dataSnapshot.getKey();
-                userDisplayName = u.displayName;
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         adapterCategoriesList = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, categoryList);
         categorySpinner.setAdapter(adapterCategoriesList);
@@ -315,7 +302,7 @@ public class SubmitReceiptActivity extends BaseActivity
                         Long year = Long.parseLong(expenseDateTextView.getText().toString().substring(6, 10));
                         receipt.date = (year * 10000) + (month * 100) + day;
 
-                        receipt.user = userDisplayName;
+                        receipt.userUid = currentUid;
 
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
                         DatabaseReference dbRef = database.getReference(

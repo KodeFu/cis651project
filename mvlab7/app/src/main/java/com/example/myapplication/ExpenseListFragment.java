@@ -40,6 +40,7 @@ public class ExpenseListFragment extends Fragment
 
     private FirebaseAuth mAuth;
     DatabaseReference groupsRef;
+    DatabaseReference usersRef;
     DatabaseReference spendingRef;
 
     HashMap<String, Group> groupsList = new HashMap<String, Group>();
@@ -47,6 +48,7 @@ public class ExpenseListFragment extends Fragment
     ArrayAdapter adapterCategoriesList;
     ArrayList<String> membersList = new ArrayList<String>();
     ArrayAdapter adapterMembersList;
+    HashMap<String, User> usersMap = new HashMap<String, User>();
 
     private Context context;
     private View rootView;
@@ -67,101 +69,6 @@ public class ExpenseListFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.expense_list_fragment, container, false);
-
-        mAuth = FirebaseAuth.getInstance();
-
-        groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
-        groupsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                groupsList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String child = ds.getKey();
-                    Group g = ds.getValue(Group.class);
-                    g.token = child;
-                    groupsList.put(child, g);
-
-                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
-                }
-
-                updateUI();
-
-                if (!initialized) {
-                    initialized = true;
-
-                    String groupUserToken = GroupsHelper.getGroupUserToken(groupsList);
-
-                    if (!groupUserToken.isEmpty()) {
-                        spendingRef = FirebaseDatabase.getInstance().getReference("/spending/" + groupUserToken);
-                        spendingRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                Spending s = dataSnapshot.getValue(Spending.class);
-                                s.token = dataSnapshot.getKey();
-                                Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
-
-                                for (Map.Entry y : s.receipts.entrySet()) {
-                                    Map<String, MonthlyReceipts> mapMonthlyReceipts = (Map<String, MonthlyReceipts>)y.getValue();
-                                    for (Map.Entry mr : mapMonthlyReceipts.entrySet()) {
-                                        MonthlyReceipts monthlyReceipts = (MonthlyReceipts)mr.getValue();
-                                        for (Map.Entry c : monthlyReceipts.detail.entrySet()) {
-                                            Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
-                                            for (Map.Entry r : mapReceipts.entrySet()) {
-                                                Receipt receipt = (Receipt)r.getValue();
-                                                String dateString = String.valueOf(receipt.date);
-                                                NumberFormat nf = NumberFormat.getInstance();
-                                                nf.setMaximumFractionDigits(2);
-                                                nf.setMinimumFractionDigits(2);
-                                                String amountString = nf.format(receipt.amount);
-                                                expenseList.add(
-                                                        new ExpenseAdapterItem(
-                                                                R.drawable.profile_photo,
-                                                                dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
-                                                                receipt.user,
-                                                                receipt.category,
-                                                                amountString,
-                                                                receipt.description
-                                                        )
-                                                );
-                                            }
-                                        }
-                                    }
-                                }
-                                Collections.sort(expenseList, new Comparator<ExpenseAdapterItem>() {
-                                    @Override
-                                    public int compare(ExpenseAdapterItem o1, ExpenseAdapterItem o2) {
-                                        Long day1 = Long.parseLong(o1.getDate().substring(3, 5));
-                                        Long month1 = Long.parseLong(o1.getDate().substring(0, 2));
-                                        Long year1 = Long.parseLong(o1.getDate().substring(6, 10));
-                                        Long l1 = (year1 * 10000) + (month1 * 100) + day1;
-
-                                        Long day2 = Long.parseLong(o2.getDate().substring(3, 5));
-                                        Long month2 = Long.parseLong(o2.getDate().substring(0, 2));
-                                        Long year2 = Long.parseLong(o2.getDate().substring(6, 10));
-                                        Long l2 = (year2 * 10000) + (month2 * 100) + day2;
-
-                                        if (l1 < l2) return -1;
-                                        if (l1 > l2) return 1;
-                                        return 0;
-                                    }
-                                });
-                                expenseAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-                                Log.d("appdebug", "onCancelled");
-                            }
-                        });
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.d("appdebug", "onCancelled");
-            }
-        });
 
         adapterCategoriesList = new ArrayAdapter<String>(context, R.layout.support_simple_spinner_dropdown_item, categoryList);
         Spinner category = rootView.findViewById(R.id.category);
@@ -209,6 +116,117 @@ public class ExpenseListFragment extends Fragment
         expenseList = new ArrayList<ExpenseAdapterItem>();
         expenseAdapter = new ExpenseAdapter(context, expenseList);
 
+        mAuth = FirebaseAuth.getInstance();
+
+        groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
+        groupsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                groupsList.clear();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String child = ds.getKey();
+                    Group g = ds.getValue(Group.class);
+                    g.token = child;
+                    groupsList.put(child, g);
+
+                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                }
+
+                updateUI();
+
+                usersRef = FirebaseDatabase.getInstance().getReference("/users");
+                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot child : dataSnapshot.getChildren()) {
+                            User u = child.getValue(User.class);
+                            u.uid = child.getKey();
+                            usersMap.put(u.uid, u);
+                        }
+
+                        String groupUserToken = GroupsHelper.getGroupUserToken(groupsList);
+
+                        if (!groupUserToken.isEmpty()) {
+                            spendingRef = FirebaseDatabase.getInstance().getReference("/spending/" + groupUserToken);
+                            spendingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.getValue() != null) {
+                                        Spending s = dataSnapshot.getValue(Spending.class);
+                                        s.token = dataSnapshot.getKey();
+                                        Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
+
+                                        for (Map.Entry y : s.receipts.entrySet()) {
+                                            Map<String, MonthlyReceipts> mapMonthlyReceipts = (Map<String, MonthlyReceipts>)y.getValue();
+                                            for (Map.Entry mr : mapMonthlyReceipts.entrySet()) {
+                                                MonthlyReceipts monthlyReceipts = (MonthlyReceipts)mr.getValue();
+                                                for (Map.Entry c : monthlyReceipts.detail.entrySet()) {
+                                                    Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
+                                                    for (Map.Entry r : mapReceipts.entrySet()) {
+                                                        Receipt receipt = (Receipt)r.getValue();
+                                                        String dateString = String.valueOf(receipt.date);
+                                                        NumberFormat nf = NumberFormat.getInstance();
+                                                        nf.setMaximumFractionDigits(2);
+                                                        nf.setMinimumFractionDigits(2);
+                                                        String amountString = nf.format(receipt.amount);
+                                                        expenseList.add(
+                                                                new ExpenseAdapterItem(
+                                                                        usersMap.get(receipt.userUid).profilePhotoUri,
+                                                                        dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
+                                                                        usersMap.get(receipt.userUid).displayName,
+                                                                        receipt.category,
+                                                                        amountString,
+                                                                        receipt.description,
+                                                                        receipt.receipt
+                                                                )
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Collections.sort(expenseList, new Comparator<ExpenseAdapterItem>() {
+                                            @Override
+                                            public int compare(ExpenseAdapterItem o1, ExpenseAdapterItem o2) {
+                                                Long day1 = Long.parseLong(o1.getDate().substring(3, 5));
+                                                Long month1 = Long.parseLong(o1.getDate().substring(0, 2));
+                                                Long year1 = Long.parseLong(o1.getDate().substring(6, 10));
+                                                Long l1 = (year1 * 10000) + (month1 * 100) + day1;
+
+                                                Long day2 = Long.parseLong(o2.getDate().substring(3, 5));
+                                                Long month2 = Long.parseLong(o2.getDate().substring(0, 2));
+                                                Long year2 = Long.parseLong(o2.getDate().substring(6, 10));
+                                                Long l2 = (year2 * 10000) + (month2 * 100) + day2;
+
+                                                if (l1 < l2) return -1;
+                                                if (l1 > l2) return 1;
+                                                return 0;
+                                            }
+                                        });
+                                        expenseAdapter.notifyDataSetChanged();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    Log.d("appdebug", "onCancelled");
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("appdebug", "onCancelled");
+            }
+        });
+
         ListView listView  = rootView.findViewById(R.id.list_view);
         listView.setAdapter(expenseAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -221,7 +239,8 @@ public class ExpenseListFragment extends Fragment
                             expenseList.get(position).getName(),
                             expenseList.get(position).getCategory(),
                             expenseList.get(position).getAmount(),
-                            expenseList.get(position).getDescription()
+                            expenseList.get(position).getDescription(),
+                            expenseList.get(position).getReceiptPhotoUri()
                     );
                 }
             }
@@ -282,6 +301,6 @@ public class ExpenseListFragment extends Fragment
     }
 
     public interface  OnItemSelectedListener {
-        public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description);
+        public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description, String receipt);
     }
 }

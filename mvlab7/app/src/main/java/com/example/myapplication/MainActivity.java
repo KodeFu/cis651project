@@ -48,9 +48,9 @@ public class MainActivity extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
 
         final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference userRef = mRootReference.child("users/" + currentUser.getUid());
+        DatabaseReference usersRef = mRootReference.child("users/" + currentUser.getUid());
 
-        userRef.addValueEventListener(new ValueEventListener() {
+        usersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User u = dataSnapshot.getValue(User.class);

@@ -47,21 +47,18 @@ public class CustomList extends ArrayAdapter<String> {
         summary.setText("$ " + summaries.get(position));
 
         Double limitDouble = 0.0;
-        Double progressDouble = 1.0;
+        Double progressDouble = 0.0;
         if (!limits.get(position).equals("Unlimited")) {
             limitDouble = Double.valueOf(limits.get(position));
         }
 
         if (limitDouble > 0.0) {
             Double summaryDouble = Double.valueOf(summaries.get(position));
-            progressDouble = (summaryDouble / limitDouble) * 10.0;
+            progressDouble = (summaryDouble / limitDouble) * 100.0;
             //Log.d("appdebug", "values " + names.get(position) + " " + summaryDouble + " " + limitDouble + " " + progressDouble);
         }
 
         int progressInt = progressDouble.intValue();
-        if (progressInt == 0) {
-            progressInt = 1;
-        }
 
         ProgressBar progressBar = linear_layout.findViewById(R.id.spending_progress);
         progressBar.setProgress(progressInt);

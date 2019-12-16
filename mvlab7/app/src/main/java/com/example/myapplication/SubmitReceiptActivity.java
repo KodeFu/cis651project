@@ -283,11 +283,6 @@ public class SubmitReceiptActivity extends BaseActivity
                         String categoryName = categorySpinner.getSelectedItem().toString();
                         Log.d("appdebug", "spending: category name is  " +  categoryName);
 
-                        final Calendar calendar = Calendar.getInstance();
-                        int yy = calendar.get(Calendar.YEAR);
-                        int mm = calendar.get(Calendar.MONTH) + 1;
-                        int dd = calendar.get(Calendar.DAY_OF_MONTH);
-
                         String myGroup = GroupsHelper.getGroupUserToken(groupsList);
                         Log.d("appdebug", "spending: my group is: " +  myGroup);
 
@@ -306,7 +301,7 @@ public class SubmitReceiptActivity extends BaseActivity
 
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
                         DatabaseReference dbRef = database.getReference(
-                                "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/detail/" + categoryName );
+                                "/spending/" + myGroup + "/receipts/" + year +"/" + month + "/detail/" + categoryName );
                         dbRef.push().setValue(receipt);
 
                         Toast.makeText(SubmitReceiptActivity.this, "Receipt submit successful",

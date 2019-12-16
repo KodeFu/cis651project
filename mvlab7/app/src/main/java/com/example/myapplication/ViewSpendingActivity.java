@@ -61,6 +61,8 @@ public class ViewSpendingActivity extends BaseActivity
     @Override
     public void OnListItemSelected(View sharedView, ExpenseAdapterItem expenseAdapterItem) {
         Bundle args = new Bundle();
+        args.putString("id", expenseAdapterItem.getId());
+        args.putString("group", expenseAdapterItem.getGroup());
         args.putString("date", expenseAdapterItem.getDate());
         args.putString("name", expenseAdapterItem.getName());
         args.putString("category", expenseAdapterItem.getCategory());

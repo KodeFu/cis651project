@@ -1,6 +1,13 @@
 package com.example.myapplication;
 
+import com.google.firebase.database.Exclude;
+
 public class Receipt {
+    @Exclude
+    public String id;
+    @Exclude
+    public String group;
+
     public Double amount;
     public String category;
     public Long date;

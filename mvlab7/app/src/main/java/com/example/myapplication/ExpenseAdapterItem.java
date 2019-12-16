@@ -1,6 +1,8 @@
 package com.example.myapplication;
 
 public class ExpenseAdapterItem {
+    private String id;
+    private String group;
     private String profilePhotoUri;
     private String date;
     private String name;
@@ -11,6 +13,8 @@ public class ExpenseAdapterItem {
     private String receiptPhotoUri;
 
     public ExpenseAdapterItem(
+            String id,
+            String group,
             String profilePhotoUri,
             String date,
             String name,
@@ -19,6 +23,8 @@ public class ExpenseAdapterItem {
             String description,
             String receiptPhotoUri
     ) {
+        this.id = id;
+        this.group = group;
         this.profilePhotoUri = profilePhotoUri;
         this.date = date;
         this.name = name;
@@ -26,6 +32,22 @@ public class ExpenseAdapterItem {
         this.amount = amount;
         this.description = description;
         this.receiptPhotoUri = receiptPhotoUri;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getProfilePhotoUri() {

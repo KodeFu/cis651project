@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,12 +13,16 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,6 +42,9 @@ import java.util.Map;
 public class ExpenseListFragment extends Fragment
         implements DatePickerDialog.OnDateSetListener {
 
+    private ViewGroup container;
+
+    DatabaseReference rootRef;
     DatabaseReference groupsRef;
     DatabaseReference usersRef;
     DatabaseReference spendingRef;
@@ -54,6 +62,7 @@ public class ExpenseListFragment extends Fragment
     private Spinner members;
     private EditText startDateEditText;
     private EditText endDateEditText;
+    private RecyclerView recyclerView;
     private List<ExpenseAdapterItem> expenseList;
     private OnItemSelectedListener clickListener;
     private DatePicker startDate, endDate;
@@ -68,11 +77,17 @@ public class ExpenseListFragment extends Fragment
         return expenseRecyclerAdapter;
     }
 
+    ReceiptDeleteCallback receiptDeleteCallback = null;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
+        this.container = container;
+
         rootView = inflater.inflate(R.layout.expense_list_fragment, container, false);
+
+        rootRef = FirebaseDatabase.getInstance().getReference();
 
         adapterCategoriesList = new ArrayAdapter<String>(context, R.layout.support_simple_spinner_dropdown_item, categoryList);
         category = rootView.findViewById(R.id.category);
@@ -124,7 +139,7 @@ public class ExpenseListFragment extends Fragment
         expenseList = new ArrayList<ExpenseAdapterItem>();
         expenseRecyclerAdapter = new ExpenseRecyclerAdapter(context, expenseList);
 
-        RecyclerView recyclerView  = rootView.findViewById(R.id.recycler_view);
+        recyclerView  = rootView.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         layoutManager.scrollToPosition(0);
@@ -138,6 +153,54 @@ public class ExpenseListFragment extends Fragment
             throw new ClassCastException(container.toString() + "must implement OnListItemSelected");
         }
 
+        // https://codeburst.io/android-swipe-menu-with-recyclerview-8f28a235ff28
+        // https://github.com/FanFataL/swipe-controller-demo
+        receiptDeleteCallback = new ReceiptDeleteCallback(new ReceiptDeleteCallbackActions() {
+            @Override
+            public void onRightClicked(int position) {
+                ExpenseAdapterItem expenseAdapterItem = expenseRecyclerAdapter.getItem(position);
+                String month = expenseAdapterItem.getDate().substring(0, 2);
+                String year = expenseAdapterItem.getDate().substring(6, 10);
+
+                DatabaseReference receiptRef =
+                        rootRef
+                        .child("spending")
+                        .child(expenseAdapterItem.getGroup())
+                        .child("receipts")
+                        .child(year)
+                        .child(month)
+                        .child("detail")
+                        .child(expenseAdapterItem.getCategory())
+                        .child(expenseAdapterItem.getId());
+                receiptRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(context, "Delete successful",
+                                    Toast.LENGTH_SHORT).show();
+                            getExpenseList();
+                        } else {
+                            Toast.makeText(context, "Unable to delete receipt",
+                                    Toast.LENGTH_SHORT).show();
+                            if (task.getException() != null) {
+                                Toast.makeText(context, task.getException().getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(receiptDeleteCallback);
+        itemTouchhelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                receiptDeleteCallback.onDraw(c);
+            }
+        });
 
         getExpenseList();
 
@@ -173,15 +236,15 @@ public class ExpenseListFragment extends Fragment
                             usersMap.put(u.uid, u);
                         }
 
-                        String groupUserToken = GroupsHelper.getGroupUserToken(groupsList);
+                        final String groupUserToken = GroupsHelper.getGroupUserToken(groupsList);
 
                         if (!groupUserToken.isEmpty()) {
                             spendingRef = FirebaseDatabase.getInstance().getReference("/spending/" + groupUserToken);
                             spendingRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                public void onDataChange(@NonNull final DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.getValue() != null) {
-                                        Spending s = dataSnapshot.getValue(Spending.class);
+                                        final Spending s = dataSnapshot.getValue(Spending.class);
                                         s.token = dataSnapshot.getKey();
                                         Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
 
@@ -193,6 +256,8 @@ public class ExpenseListFragment extends Fragment
                                                     Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
                                                     for (Map.Entry r : mapReceipts.entrySet()) {
                                                         Receipt receipt = (Receipt)r.getValue();
+                                                        receipt.id = (String)r.getKey();
+                                                        receipt.group = (String)groupUserToken;
                                                         String dateString = String.valueOf(receipt.date);
                                                         NumberFormat nf = NumberFormat.getInstance();
                                                         nf.setMaximumFractionDigits(2);
@@ -200,6 +265,8 @@ public class ExpenseListFragment extends Fragment
                                                         String amountString = nf.format(receipt.amount);
                                                         expenseList.add(
                                                                 new ExpenseAdapterItem(
+                                                                        receipt.id,
+                                                                        receipt.group,
                                                                         usersMap.get(receipt.userUid).profilePhotoUri,
                                                                         dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
                                                                         usersMap.get(receipt.userUid).displayName,

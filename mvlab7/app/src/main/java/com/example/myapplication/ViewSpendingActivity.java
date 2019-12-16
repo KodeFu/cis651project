@@ -41,12 +41,12 @@ public class ViewSpendingActivity extends BaseActivity
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                expenseListFragment.getExpenseAdapter().getFilter().filter(query);
+                expenseListFragment.getExpenseRecyclerAdapter().getFilter().filter(query);
                 return true;
             }
             @Override
             public boolean onQueryTextChange(String newText) {
-                expenseListFragment.getExpenseAdapter().getFilter().filter(newText);
+                expenseListFragment.getExpenseRecyclerAdapter().getFilter().filter(newText);
                 return true;
             }
         });
@@ -59,14 +59,14 @@ public class ViewSpendingActivity extends BaseActivity
     }
 
     @Override
-    public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description, String receipt) {
+    public void OnListItemSelected(View sharedView, ExpenseAdapterItem expenseAdapterItem) {
         Bundle args = new Bundle();
-        args.putString("date", date);
-        args.putString("name", name);
-        args.putString("category", category);
-        args.putString("amount", amount);
-        args.putString("description", description);
-        args.putString("receipt", receipt);
+        args.putString("date", expenseAdapterItem.getDate());
+        args.putString("name", expenseAdapterItem.getName());
+        args.putString("category", expenseAdapterItem.getCategory());
+        args.putString("amount", expenseAdapterItem.getAmount());
+        args.putString("description", expenseAdapterItem.getDescription());
+        args.putString("receipt", expenseAdapterItem.getReceiptPhotoUri());
         Fragment expenseDetailFragment = new ExpenseDetailFragment(this);
         expenseDetailFragment.setArguments(args);
 

@@ -160,7 +160,7 @@ public class SubmitReceiptActivity extends BaseActivity
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        String date = String.format("%02d", month) + "/" +
+        String date = String.format("%02d", month + 1) + "/" +
                 String.format("%02d", day) + "/" +
                 String.format("%04d", year);
         expenseDateTextView.setText(date);

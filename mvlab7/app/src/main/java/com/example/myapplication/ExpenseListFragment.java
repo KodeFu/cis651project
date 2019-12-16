@@ -7,17 +7,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.Filterable;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -63,10 +62,10 @@ public class ExpenseListFragment extends Fragment
         this.context = context;
     }
 
-    private ExpenseAdapter expenseAdapter;
+    private ExpenseRecyclerAdapter expenseRecyclerAdapter;
 
-    public ExpenseAdapter getExpenseAdapter() {
-        return expenseAdapter;
+    public ExpenseRecyclerAdapter getExpenseRecyclerAdapter() {
+        return expenseRecyclerAdapter;
     }
 
     @Override
@@ -123,26 +122,22 @@ public class ExpenseListFragment extends Fragment
         });
 
         expenseList = new ArrayList<ExpenseAdapterItem>();
-        expenseAdapter = new ExpenseAdapter(context, expenseList);
+        expenseRecyclerAdapter = new ExpenseRecyclerAdapter(context, expenseList);
 
-        ListView listView  = rootView.findViewById(R.id.list_view);
-        listView.setAdapter(expenseAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (clickListener != null) {
-                    clickListener.OnListItemSelected(
-                            view,
-                            expenseList.get(position).getDate(),
-                            expenseList.get(position).getName(),
-                            expenseList.get(position).getCategory(),
-                            expenseList.get(position).getAmount(),
-                            expenseList.get(position).getDescription(),
-                            expenseList.get(position).getReceiptPhotoUri()
-                    );
-                }
-            }
-        });
+        RecyclerView recyclerView  = rootView.findViewById(R.id.recycler_view);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        layoutManager.scrollToPosition(0);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(expenseRecyclerAdapter);
+
+        try {
+            OnItemSelectedListener parent = (OnItemSelectedListener)getActivity();
+            expenseRecyclerAdapter.setOnListItemClickListener(parent);
+        } catch (ClassCastException ex) {
+            throw new ClassCastException(container.toString() + "must implement OnListItemSelected");
+        }
+
 
         getExpenseList();
 
@@ -150,6 +145,8 @@ public class ExpenseListFragment extends Fragment
     }
 
     public void getExpenseList() {
+        expenseList.clear();
+        
         groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
         groupsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -261,7 +258,7 @@ public class ExpenseListFragment extends Fragment
                                                 return 0;
                                             }
                                         });
-                                        expenseAdapter.notifyDataSetChanged();
+                                        expenseRecyclerAdapter.notifyDataSetChanged();
                                     }
                                 }
 
@@ -339,6 +336,6 @@ public class ExpenseListFragment extends Fragment
     }
 
     public interface  OnItemSelectedListener {
-        public void OnListItemSelected(View sharedView, String date, String name, String category, String amount, String description, String receipt);
+        public void OnListItemSelected(View sharedView, ExpenseAdapterItem expenseAdapterItem);
     }
 }

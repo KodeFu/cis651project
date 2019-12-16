@@ -23,7 +23,8 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
                 android:textSize="16dp"
-                android:hint="Email"/>
+                android:textColor="#000000"
+                android:enabled="false"/>
             <EditText
                 android:id="@+id/et_password"
                 android:layout_width="match_parent"

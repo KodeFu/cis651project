@@ -1,19 +1,17 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,11 +23,9 @@ import com.google.firebase.iid.InstanceIdResult;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseUser currentUser;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -43,56 +39,20 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mAuth = FirebaseAuth.getInstance();
-
-        currentUser = mAuth.getCurrentUser();
-
-        if(currentUser!=null) {
-/*
-            if(currentUser.isEmailVerified()) {
-                successfulLogin();
-            }
-            else
-            {
-                Toast.makeText(this, "Email is not Verified",
-                        Toast.LENGTH_SHORT).show();
-            }
-*/
-            successfulLogin();
-        }
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                currentUser = firebaseAuth.getCurrentUser();
-
-                if(currentUser!=null) {
-/*
-                    if(user.isEmailVerified()) {
-                        successfulLogin();
-                    }
-                    else
-                    {
-                        Toast.makeText(LoginActivity.this, "Email is not Verified",
-                                Toast.LENGTH_SHORT).show();
-                    }
-*/
-                    successfulLogin();
-                }
-            }
-        };
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            if (currentUser.isEmailVerified()) {
+                successfulLogin();
+            } else {
+                Toast.makeText(this, "Email is not verified",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -107,18 +67,28 @@ public class LoginActivity extends AppCompatActivity {
         else
         {
             mAuth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
-                    .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
-                        public void onSuccess(AuthResult authResult) {
-                            Log.d("appdebug", "onClickSignIn Success");
-                        }
-                    })
-                    .addOnFailureListener(this, new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.d("appdebug", "onClickSignIn Failure:" + e.getMessage());
-                            Toast.makeText(LoginActivity.this, "Sign in failure" + e.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                FirebaseUser currentUser = mAuth.getCurrentUser();
+                                if (currentUser != null) {
+                                    if (currentUser.isEmailVerified()) {
+                                        successfulLogin();
+                                    } else {
+                                        Toast.makeText(LoginActivity.this, "Email is not verified",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            } else {
+                                if (task.getException() != null) {
+                                    Toast.makeText(LoginActivity.this, "Sign in failure: " + task.getException().getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(LoginActivity.this, "Sign in failure",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
                         }
                     });
         }
@@ -130,14 +100,34 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            return;
+                        if (task.isSuccessful()) {
+                            String token = task.getResult().getToken();
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            DatabaseReference databaseReference =
+                                    FirebaseDatabase.getInstance().getReference().child("userTokens").child(currentUser.getUid());
+                            databaseReference.setValue(token).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (!task.isSuccessful()) {
+                                        if (task.getException() != null) {
+                                            Toast.makeText(LoginActivity.this, "Save instance token failure: " + task.getException().getMessage(),
+                                                    Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(LoginActivity.this, "Save instance token failure",
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                }
+                            });
+                        } else {
+                            if (task.getException() != null) {
+                                Toast.makeText(LoginActivity.this, "Get instance token failure: " + task.getException().getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Get instance token failure",
+                                        Toast.LENGTH_SHORT).show();
+                            }
                         }
-
-                        String token = task.getResult().getToken();
-                        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
-                                .getReference().child("userTokens/" + currentUser.getUid());
-                        databaseReference.setValue(token);
                     }
                 });
 

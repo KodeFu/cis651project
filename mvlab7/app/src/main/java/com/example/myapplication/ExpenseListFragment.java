@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -17,7 +19,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,15 +31,13 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class ExpenseListFragment extends Fragment
         implements DatePickerDialog.OnDateSetListener {
 
-    private boolean initialized = false;
-
-    private FirebaseAuth mAuth;
     DatabaseReference groupsRef;
     DatabaseReference usersRef;
     DatabaseReference spendingRef;
@@ -52,6 +51,10 @@ public class ExpenseListFragment extends Fragment
 
     private Context context;
     private View rootView;
+    private Spinner category;
+    private Spinner members;
+    private EditText startDateEditText;
+    private EditText endDateEditText;
     private List<ExpenseAdapterItem> expenseList;
     private OnItemSelectedListener clickListener;
     private DatePicker startDate, endDate;
@@ -68,24 +71,32 @@ public class ExpenseListFragment extends Fragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+
         rootView = inflater.inflate(R.layout.expense_list_fragment, container, false);
 
         adapterCategoriesList = new ArrayAdapter<String>(context, R.layout.support_simple_spinner_dropdown_item, categoryList);
-        Spinner category = rootView.findViewById(R.id.category);
+        category = rootView.findViewById(R.id.category);
         category.setAdapter(adapterCategoriesList);
 
         adapterMembersList = new ArrayAdapter<String>(context, R.layout.support_simple_spinner_dropdown_item, membersList);
-        Spinner members = rootView.findViewById(R.id.members);
+        members = rootView.findViewById(R.id.members);
         members.setAdapter(adapterMembersList);
+
+        startDateEditText = rootView.findViewById(R.id.start_edit_text);
+        endDateEditText = rootView.findViewById(R.id.end_edit_text);
 
         final Calendar calendar = Calendar.getInstance();
         int yy = calendar.get(Calendar.YEAR);
-        int mm = calendar.get(Calendar.MONTH);
+        int mm = calendar.get(Calendar.MONTH) + 1;
         int dd = calendar.get(Calendar.DAY_OF_MONTH);
 
-        TextView startDateTextView = rootView.findViewById(R.id.start_text_view);
-        startDateTextView.setText(String.format("%02d", mm) + "/01/" + String.format("%04d", yy));
-        startDateTextView.setOnClickListener(new View.OnClickListener() {
+        startDateEditText.setText(String.format("%02d", mm) + "/01/" + String.format("%04d", yy));
+        endDateEditText.setText(String.format("%02d", mm) + "/" + String.format("%02d", dd) + "/" + String.format("%04d", yy));
+        startDateEditText.setFocusable(false);
+        endDateEditText.setFocusable(false);
+
+        startDateEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final Calendar calendar = Calendar.getInstance();
@@ -98,9 +109,7 @@ public class ExpenseListFragment extends Fragment
             }
         });
 
-        TextView endDateTextView = rootView.findViewById(R.id.end_text_view);
-        endDateTextView.setText(String.format("%02d", mm) + "/" + String.format("%02d", dd) + "/" + String.format("%04d", yy));
-        endDateTextView.setOnClickListener(new View.OnClickListener() {
+        endDateEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final Calendar calendar = Calendar.getInstance();
@@ -116,8 +125,31 @@ public class ExpenseListFragment extends Fragment
         expenseList = new ArrayList<ExpenseAdapterItem>();
         expenseAdapter = new ExpenseAdapter(context, expenseList);
 
-        mAuth = FirebaseAuth.getInstance();
+        ListView listView  = rootView.findViewById(R.id.list_view);
+        listView.setAdapter(expenseAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (clickListener != null) {
+                    clickListener.OnListItemSelected(
+                            view,
+                            expenseList.get(position).getDate(),
+                            expenseList.get(position).getName(),
+                            expenseList.get(position).getCategory(),
+                            expenseList.get(position).getAmount(),
+                            expenseList.get(position).getDescription(),
+                            expenseList.get(position).getReceiptPhotoUri()
+                    );
+                }
+            }
+        });
 
+        getExpenseList();
+
+        return rootView;
+    }
+
+    public void getExpenseList() {
         groupsRef = FirebaseDatabase.getInstance().getReference("/groups");
         groupsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -184,6 +216,33 @@ public class ExpenseListFragment extends Fragment
                                                 }
                                             }
                                         }
+                                        Iterator<ExpenseAdapterItem> i = expenseList.iterator();
+                                        while (i.hasNext()) {
+                                            ExpenseAdapterItem expenseAdapterItem = i.next();
+                                            String categorySelected = category.getSelectedItem().toString();
+                                            String memberSelected = members.getSelectedItem().toString();
+
+                                            Long startDay = Long.parseLong(startDateEditText.getText().toString().substring(3, 5));
+                                            Long startMonth = Long.parseLong(startDateEditText.getText().toString().substring(0, 2));
+                                            Long startYear = Long.parseLong(startDateEditText.getText().toString().substring(6, 10));
+                                            Long startDate = (startYear * 10000) + (startMonth * 100) + startDay;
+
+                                            Long endDay = Long.parseLong(endDateEditText.getText().toString().substring(3, 5));
+                                            Long endMonth = Long.parseLong(endDateEditText.getText().toString().substring(0, 2));
+                                            Long endYear = Long.parseLong(endDateEditText.getText().toString().substring(6, 10));
+                                            Long endDate = (endYear * 10000) + (endMonth * 100) + endDay;
+
+                                            Long receiptDay = Long.parseLong(expenseAdapterItem.getDate().substring(3, 5));
+                                            Long receiptMonth = Long.parseLong(expenseAdapterItem.getDate().substring(0, 2));
+                                            Long receiptYear = Long.parseLong(expenseAdapterItem.getDate().substring(6, 10));
+                                            Long receiptDate = (receiptYear * 10000) + (receiptMonth * 100) + receiptDay;
+
+                                            if (!(categorySelected.equals("All") || categorySelected.equals(expenseAdapterItem.getCategory())) ||
+                                                    !(memberSelected.equals("All") || memberSelected.equals(expenseAdapterItem.getName())) ||
+                                                    !(receiptDate >= startDate && receiptDate <= endDate)) {
+                                                i.remove();
+                                            }
+                                        }
                                         Collections.sort(expenseList, new Comparator<ExpenseAdapterItem>() {
                                             @Override
                                             public int compare(ExpenseAdapterItem o1, ExpenseAdapterItem o2) {
@@ -226,30 +285,9 @@ public class ExpenseListFragment extends Fragment
                 Log.d("appdebug", "onCancelled");
             }
         });
-
-        ListView listView  = rootView.findViewById(R.id.list_view);
-        listView.setAdapter(expenseAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (clickListener != null) {
-                    clickListener.OnListItemSelected(
-                            view,
-                            expenseList.get(position).getDate(),
-                            expenseList.get(position).getName(),
-                            expenseList.get(position).getCategory(),
-                            expenseList.get(position).getAmount(),
-                            expenseList.get(position).getDescription(),
-                            expenseList.get(position).getReceiptPhotoUri()
-                    );
-                }
-            }
-        });
-
-        return rootView;
     }
 
-    public void updateUI()
+    private void updateUI()
     {
         Log.d("appdebug", "updateUI: ");
 
@@ -287,15 +325,15 @@ public class ExpenseListFragment extends Fragment
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        String date = String.format("%02d", month) + "/" +
+        String date = String.format("%02d", month + 1) + "/" +
                 String.format("%02d", day) + "/" +
                 String.format("%04d", year);
         if (view == startDate) {
-            final TextView textView = rootView.findViewById(R.id.start_text_view);
+            final TextView textView = rootView.findViewById(R.id.start_edit_text);
             textView.setText(date);
         }
         if (view == endDate) {
-            final TextView textView = rootView.findViewById(R.id.end_text_view);
+            final TextView textView = rootView.findViewById(R.id.end_edit_text);
             textView.setText(date);
         }
     }

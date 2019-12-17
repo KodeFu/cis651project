@@ -6,9 +6,9 @@ public class User {
     @Exclude
     public String uid;
 
-    public String displayName;
-
     public String email;
+
+    public String displayName;
 
     public String group;
 
@@ -16,9 +16,9 @@ public class User {
 
     public User() {}
 
-    public User(String displayName, String email, String group, String profilePhotoUri) {
-        this.displayName = displayName;
+    public User(String email, String displayName, String group, String profilePhotoUri) {
         this.email = email;
+        this.displayName = displayName;
         this.group = group;
         this.profilePhotoUri = profilePhotoUri;
     }

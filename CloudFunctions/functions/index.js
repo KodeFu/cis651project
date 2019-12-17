@@ -27,19 +27,35 @@ exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/
 
         var databaseUpdates = {};
         var categoriesChanged = {}
-        change.after.forEach(function (categorySnapshot) {
+        
+        change.before.forEach(function (beforeCategorySnapshot) {
+            var categoryStillPresent = false;
+
+            change.after.forEach(function (categoryAfterSnapshot) {
+                if (beforeCategorySnapshot.key.localeCompare(categoryAfterSnapshot.key) == 0) {
+                    categoryStillPresent = true;
+                }
+            });
+
+            if (!categoryStillPresent) {
+                databaseUpdates[`summary/${beforeCategorySnapshot.key}`] = null;
+            }
+        });
+
+        change.after.forEach(function (categoryAfterSnapshot) {
             var categoryTotal = 0;
-            categorySnapshot.forEach(function (receiptSnapShot) {
+            categoryAfterSnapshot.forEach(function (receiptSnapShot) {
                 const receipt = receiptSnapShot.val();
                 categoryTotal = categoryTotal + parseFloat(receipt.amount);
             });
             const currentValueObject = currentSummarySnapshot.val();
-            const currentValue = currentValueObject && currentValueObject[categorySnapshot.key];
+            const currentValue = currentValueObject && currentValueObject[categoryAfterSnapshot.key];
             if (currentValue != categoryTotal) {
-                databaseUpdates[`summary/${categorySnapshot.key}`] = categoryTotal;
-                categoriesChanged[`${categorySnapshot.key}`] = categoryTotal;
+                databaseUpdates[`summary/${categoryAfterSnapshot.key}`] = categoryTotal;
+                categoriesChanged[`${categoryAfterSnapshot.key}`] = categoryTotal;
             }
         });
+
         await change.after.ref.parent.update(databaseUpdates);
 
         const groupsSnapshot =

@@ -50,10 +50,10 @@ public class AdministerCategoryActivity extends BaseActivity {
                 if (c!=null) {
                     EditText limit = findViewById(R.id.limit);
 
-                    if (c.limit == -1 ) {
+                    if (c.limit == -1.0 ) {
                         limit.setText("No Limit");
                     } else {
-                        limit.setText(c.limit.toString());
+                        limit.setText(String.format("%.2f", c.limit));
                     }
                 }
             }
@@ -97,9 +97,11 @@ public class AdministerCategoryActivity extends BaseActivity {
         Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
         categoryList.clear();
 
-        for (Map.Entry m : groupCategoryList.entrySet())
-        {
-            categoryList.add(((Category)m.getValue()).displayName);
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet())
+            {
+                categoryList.add(((Category)m.getValue()).displayName);
+            }
         }
         Spinner categorySpinner = findViewById(R.id.category);
         adapterCategoriesList.notifyDataSetChanged();
@@ -130,9 +132,11 @@ public class AdministerCategoryActivity extends BaseActivity {
 
         Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
 
-        for (Map.Entry m : groupCategoryList.entrySet()) {
-            if (((Category)m.getValue()).displayName.equals(selectedItem)) {
-                categoryName = m.getKey().toString();
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet()) {
+                if (((Category)m.getValue()).displayName.equals(selectedItem)) {
+                    categoryName = m.getKey().toString();
+                }
             }
         }
 
@@ -175,18 +179,20 @@ public class AdministerCategoryActivity extends BaseActivity {
         EditText limit = findViewById(R.id.limit);
         if (limit.getText().toString().equals("No Limit"))
         {
-            category.limit = -1;
+            category.limit = -1.0;
         }
         else
         {
-            category.limit = Integer.parseInt( limit.getText().toString() );
+            category.limit = Double.parseDouble( limit.getText().toString() );
         }
 
         Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
 
-        for (Map.Entry m : groupCategoryList.entrySet()) {
-            if (((Category)m.getValue()).displayName.equals(selectedItem)) {
-                categoryName = m.getKey().toString();
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet()) {
+                if (((Category)m.getValue()).displayName.equals(selectedItem)) {
+                    categoryName = m.getKey().toString();
+                }
             }
         }
 

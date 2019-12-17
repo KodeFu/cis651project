@@ -1,13 +1,11 @@
 package com.example.myapplication;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -31,14 +29,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -65,7 +61,7 @@ public class SubmitReceiptActivity extends BaseActivity
     ArrayList<String> categoryList = new ArrayList<String>();
     ArrayAdapter adapterCategoriesList;
 
-    HashMap<String, Double> monthlySummaryList = new HashMap<String, Double>();
+    HashMap<String, Group> groupsList = new HashMap<String, Group>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,45 +104,15 @@ public class SubmitReceiptActivity extends BaseActivity
         groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d("appdebug", "onDataChange: ");
+                groupsList.clear();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String child = ds.getKey();
+                    Group g = ds.getValue(Group.class);
+                    g.token = child;
+                    groupsList.put(child, g);
 
-                final Calendar calendar = Calendar.getInstance();
-                int yy = calendar.get(Calendar.YEAR);
-                int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
-                int dd = calendar.get(Calendar.DAY_OF_MONTH);
-
-                String myGroup = GroupsHelper.getGroupUserToken(groupsList);
-                String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
-                Log.d("appdebug", "db path is " + path);
-
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference dbRef = database.getReference(path);
-
-                dbRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Log.d("appdebug", "onDataChange: spending EGADS MAN! Got something!");
-
-                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                            String key = ds.getKey();
-                            Number value = (Number) ds.getValue();
-                            Double doubleValue;
-                            if (value instanceof Long) {
-                                doubleValue = ((Long)value).doubleValue();
-                            } else {
-                                doubleValue = (Double)value;
-                            }
-                            Log.d("appdebug", "onDataChange: spending key:" + key + " value: " + value);
-
-                            monthlySummaryList.put(key, doubleValue);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Log.d("appdebug", "spending onCancelled");
-                    }
-                });
+                    Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
+                }
 
                 updateUI();
             }
@@ -230,124 +196,103 @@ public class SubmitReceiptActivity extends BaseActivity
             Toast.makeText(getApplicationContext(), "No Category Specified", Toast.LENGTH_SHORT).show();
             return;
         }
-        String categoryName = categorySpinner.getSelectedItem().toString();
-        Category category = GroupsHelper.getCategory(groupsList, categoryName);
-        int categoryLimit = category.limit;
-        //Log.d("appdebug", "spending: category name is  " +  category.limit);
-        //Log.d("appdebug", "spending: category name is  " +  category.displayName);
+        final String categoryName = categorySpinner.getSelectedItem().toString();
+        final Category category = GroupsHelper.getCategory(groupsList, categoryName);
+        Log.d("appdebug", "spending: category name is  " +  categoryName);
 
-        //  amount + monthlySummary <= monthlyLimit
-        Double amount = Double.parseDouble(amountEditText.getText().toString());
+        final String myGroup = GroupsHelper.getGroupUserToken(groupsList);
+        Log.d("appdebug", "spending: my group is: " +  myGroup);
 
-         // What is the monthly total so far?
-        Double monthlySummary = 0.0;
-        for (Map.Entry m : monthlySummaryList.entrySet()) {
-            Log.d("appdebug", "monthlySummaryList key=" + m.getKey() + " value=" + m.getValue());
-            if (m.getKey().equals(categoryName)) {
-                monthlySummary = (Double)m.getValue();
-            }
-        }
+        final Long day = Long.parseLong(expenseDateTextView.getText().toString().substring(3, 5));
+        final Long month = Long.parseLong(expenseDateTextView.getText().toString().substring(0, 2));
+        final Long year = Long.parseLong(expenseDateTextView.getText().toString().substring(6, 10));
 
-        // Check if the new receipt can be submitted by checking if the AMOUNT + MONTHLY SUMMARY < MONTHLY LIMIT
-        // Note: If category.limit is -1, which means unlimited, then we can skip this check.
-        if ( (category.limit != -1) && (amount + monthlySummary) > category.limit )
-        {
-            Toast.makeText(getApplicationContext(), "Monthly Limit Exceeded", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // https://firebase.google.com/docs/auth/android/manage-users
-        if (receiptPhotoByteArray != null) {
-            String path="images/"+ UUID.randomUUID()+".jpg";
-            final StorageReference imageRef = storage.getReference(path);
-            UploadTask uploadTask=imageRef.putBytes(receiptPhotoByteArray);
-
-            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-
-                    // Continue with the task to get the download URL
-                    return imageRef.getDownloadUrl();
-                }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
-                        Log.d("appdebug", downloadUri.toString());
-
-                        // TODO: add receipt under spending in database
-                        String categoryName = categorySpinner.getSelectedItem().toString();
-                        Log.d("appdebug", "spending: category name is  " +  categoryName);
-
-                        String myGroup = GroupsHelper.getGroupUserToken(groupsList);
-                        Log.d("appdebug", "spending: my group is: " +  myGroup);
-
-                        Receipt receipt = new Receipt();
-                        receipt.amount = Double.parseDouble(amountEditText.getText().toString().trim());
-                        receipt.category = categoryName;
-                        receipt.description = descriptionEditText.getText().toString();
-                        receipt.receipt = downloadUri.toString();
-
-                        Long day = Long.parseLong(expenseDateTextView.getText().toString().substring(3, 5));
-                        Long month = Long.parseLong(expenseDateTextView.getText().toString().substring(0, 2));
-                        Long year = Long.parseLong(expenseDateTextView.getText().toString().substring(6, 10));
-                        receipt.date = (year * 10000) + (month * 100) + day;
-
-                        receipt.userUid = currentUid;
-
-                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference dbRef = database.getReference(
-                                "/spending/" + myGroup + "/receipts/" + year +"/" + month + "/detail/" + categoryName );
-                        dbRef.push().setValue(receipt);
-
-                        Toast.makeText(SubmitReceiptActivity.this, "Receipt submit successful",
-                                Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(SubmitReceiptActivity.this, LoginActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        finish();
+        DatabaseReference summaryRef = mRootReference.child(
+                "spending/" + myGroup + "/receipts/" + year +"/" + month + "/summary/" + categoryName );
+        summaryRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Number value = (Number) dataSnapshot.getValue();
+                Double monthlySummary;
+                if (value == null) {
+                    monthlySummary = 0.0;
+                } else {
+                    if (value instanceof Long) {
+                        monthlySummary = ((Long)value).doubleValue();
                     } else {
-                        // Handle failures
-                        Toast.makeText(SubmitReceiptActivity.this, "Photo upload failed",
-                                Toast.LENGTH_SHORT).show();
+                        monthlySummary = (Double)value;
                     }
                 }
-            });
-        } else {
-            Toast.makeText(this, "Must provide photo of receipt",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
+                // Check if the new receipt can be submitted by checking if the AMOUNT + MONTHLY SUMMARY > MONTHLY LIMIT
+                // Note: If category.limit is -1.0, which means unlimited, then we can skip this check.
+                final Double amount = Double.parseDouble(amountEditText.getText().toString());
+                if ( (category.limit != -1.0) && (amount + monthlySummary) > category.limit )
+                {
+                    Toast.makeText(getApplicationContext(), "Monthly Limit Exceeded", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-    final static class WorkerDownloadImage extends AsyncTask<String, String, Bitmap> {
-        private final WeakReference<Context> parentRef;
-        private final WeakReference<ImageView> imageViewRef;
+                // https://firebase.google.com/docs/auth/android/manage-users
+                if (receiptPhotoByteArray != null) {
+                    String path="images/"+ UUID.randomUUID()+".jpg";
+                    final StorageReference imageRef = storage.getReference(path);
+                    UploadTask uploadTask=imageRef.putBytes(receiptPhotoByteArray);
 
-        public  WorkerDownloadImage(final Context parent, final ImageView imageview)
-        {
-            parentRef=new WeakReference<Context>(parent);
-            imageViewRef=new WeakReference<ImageView>(imageview);
-        }
+                    Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                        @Override
+                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                            if (!task.isSuccessful()) {
+                                throw task.getException();
+                            }
 
-        @Override
-        protected Bitmap doInBackground(String... urls) {
-            Bitmap result= HTTP_METHODS.downloadImageUsingHTTPGetRequest(urls[0]);
-            return result;
-        }
+                            // Continue with the task to get the download URL
+                            return imageRef.getDownloadUrl();
+                        }
+                    }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Uri downloadUri = task.getResult();
+                                Log.d("appdebug", downloadUri.toString());
 
-        @Override
-        protected void onPostExecute(final Bitmap result){
-            final ImageView iv=imageViewRef.get();
-            if(iv!=null)
-            {
-                iv.setImageBitmap(result);
+                                Receipt receipt = new Receipt();
+                                receipt.amount = Double.parseDouble(amountEditText.getText().toString().trim());
+                                receipt.category = categoryName;
+                                receipt.description = descriptionEditText.getText().toString();
+                                receipt.receipt = downloadUri.toString();
+                                receipt.date = (year * 10000) + (month * 100) + day;
+
+                                receipt.userUid = currentUid;
+
+                                DatabaseReference dbRef = mRootReference.child(
+                                        "spending/" + myGroup + "/receipts/" + year +"/" + month + "/detail/" + categoryName );
+                                dbRef.push().setValue(receipt);
+
+                                Toast.makeText(SubmitReceiptActivity.this, "Receipt submit successful",
+                                        Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(SubmitReceiptActivity.this, LoginActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                // Handle failures
+                                Toast.makeText(SubmitReceiptActivity.this, "Photo upload failed",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } else {
+                    Toast.makeText(SubmitReceiptActivity.this, "Must provide photo of receipt",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void updateUI()
@@ -357,9 +302,11 @@ public class SubmitReceiptActivity extends BaseActivity
         Map<String, Category> groupCategoryList = GroupsHelper.getCategories(groupsList);
         categoryList.clear();
 
-        for (Map.Entry m : groupCategoryList.entrySet())
-        {
-            categoryList.add(((Category)m.getValue()).displayName);
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet())
+            {
+                categoryList.add(((Category)m.getValue()).displayName);
+            }
         }
         adapterCategoriesList.notifyDataSetChanged();
     }

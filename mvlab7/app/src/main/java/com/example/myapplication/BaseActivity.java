@@ -34,7 +34,7 @@ public class BaseActivity extends AppCompatActivity
     private FirebaseAuth mAuth;
     DatabaseReference mRootReference;
     DatabaseReference groupsRef;
-    HashMap<String, Group> groupsList = new HashMap<String, Group>();
+    HashMap<String, Group> baseActivityGroupsList = new HashMap<String, Group>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,12 +47,12 @@ public class BaseActivity extends AppCompatActivity
         groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                groupsList.clear();
+                baseActivityGroupsList.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String child = ds.getKey();
                     Group g = ds.getValue(Group.class);
                     g.token = child;
-                    groupsList.put(child, g);
+                    baseActivityGroupsList.put(child, g);
 
                     Log.d("appdebug", "onChildAdded: " + child + " " + ds.getValue());
                 }
@@ -173,21 +173,21 @@ public class BaseActivity extends AppCompatActivity
                 startActivity(new Intent(this, CreateGroupActivity.class));
                 break;
             case R.id.administer_group:
-                if (!GroupsHelper.isAdmin(groupsList)) {
+                if (!GroupsHelper.isAdmin(baseActivityGroupsList)) {
                     Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 startActivity(new Intent(this, AdministerGroupActivity.class));
                 break;
             case R.id.administer_category:
-                if (!GroupsHelper.isAdmin(groupsList)) {
+                if (!GroupsHelper.isAdmin(baseActivityGroupsList)) {
                     Toast.makeText(getApplicationContext(), "Must be Administrator of the Group", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 startActivity(new Intent(this, AdministerCategoryActivity.class));
                 break;
             case R.id.join_group:
-                if (GroupsHelper.getGroupName(groupsList).equals(""))
+                if (GroupsHelper.getGroupName(baseActivityGroupsList).equals(""))
                 {
                     startActivity(new Intent(this, JoinGroupActivity.class));
                 }
@@ -198,7 +198,7 @@ public class BaseActivity extends AppCompatActivity
                 }
                 break;
             case R.id.leave_group:
-                if (GroupsHelper.removeMember(groupsList, mAuth.getCurrentUser().getUid()) )
+                if (GroupsHelper.removeMember(baseActivityGroupsList, mAuth.getCurrentUser().getUid()) )
                 {
                     Toast.makeText(getApplicationContext(), "Remove Successful",
                             Toast.LENGTH_SHORT).show();

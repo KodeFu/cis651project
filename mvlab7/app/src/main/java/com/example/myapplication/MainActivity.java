@@ -100,11 +100,10 @@ public class MainActivity extends BaseActivity {
                 int mm = calendar.get(Calendar.MONTH) + 1; // Add one here since calender is zero based
 
                 String myGroup = GroupsHelper.getGroupUserToken(groupsList);
-                String path = "/spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
+                String path = "spending/" + myGroup + "/receipts/" + yy +"/" + mm + "/summary/";
                 Log.d("appdebug", "db path is " + path);
 
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference dbRef = database.getReference(path);
+                DatabaseReference dbRef = mRootReference.child(path);
 
                 dbRef.addValueEventListener(new ValueEventListener() {
                     @Override
@@ -153,30 +152,32 @@ public class MainActivity extends BaseActivity {
         limitList.clear();
         summaryList.clear();
 
-        for (Map.Entry m : groupCategoryList.entrySet())
-        {
-            String name = ((Category)m.getValue()).displayName;
-            String limit = "Unlimited";
-            Double limitValue =  Double.valueOf( ((Category)m.getValue()).limit );
-
-            if (limitValue != -1 ) {
-                limit = String.format("%.2f", limitValue);
-            }
-
-
-            if (monthlySummaryList.containsKey(name)) {
-                Double summaryValue = (Double) monthlySummaryList.get(name);
-                String summary = String.format("%.2f", summaryValue);
-
-                categoryList.add(name);
-                limitList.add(limit);
-                summaryList.add(summary);
-
-                Log.d("appdebug", "updateUI: " + name + " " + summary);
-            }
-            else
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet())
             {
-                Log.d("appdebug", "updateUI: KEY NOT CONTAINED" + name);
+                String name = ((Category)m.getValue()).displayName;
+                String limit = "Unlimited";
+                Double limitValue =  Double.valueOf( ((Category)m.getValue()).limit );
+
+                if (limitValue != -1.0 ) {
+                    limit = String.format("%.2f", limitValue);
+                }
+
+
+                if (monthlySummaryList.containsKey(name)) {
+                    Double summaryValue = (Double) monthlySummaryList.get(name);
+                    String summary = String.format("%.2f", summaryValue);
+
+                    categoryList.add(name);
+                    limitList.add(limit);
+                    summaryList.add(summary);
+
+                    Log.d("appdebug", "updateUI: " + name + " " + summary);
+                }
+                else
+                {
+                    Log.d("appdebug", "updateUI: KEY NOT CONTAINED" + name);
+                }
             }
         }
 

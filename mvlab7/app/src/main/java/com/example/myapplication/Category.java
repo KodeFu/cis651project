@@ -8,11 +8,11 @@ public class Category {
 
     public String displayName;
 
-    public Integer limit;  // -1 is unlimited
+    public Double limit;  // -1.0 is unlimited
 
     public Category() {}
 
-    public Category(String name, String displayName, Integer limit) {
+    public Category(String name, String displayName, Double limit) {
         this.name = name;
         this.displayName = displayName;
         this.limit = limit;

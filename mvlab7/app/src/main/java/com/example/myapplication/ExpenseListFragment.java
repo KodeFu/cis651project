@@ -248,34 +248,42 @@ public class ExpenseListFragment extends Fragment
                                         s.token = dataSnapshot.getKey();
                                         Log.d("appdebug", "spendingRef.addListenerForSingleValueEvent get Spending success");
 
-                                        for (Map.Entry y : s.receipts.entrySet()) {
-                                            Map<String, MonthlyReceipts> mapMonthlyReceipts = (Map<String, MonthlyReceipts>)y.getValue();
-                                            for (Map.Entry mr : mapMonthlyReceipts.entrySet()) {
-                                                MonthlyReceipts monthlyReceipts = (MonthlyReceipts)mr.getValue();
-                                                for (Map.Entry c : monthlyReceipts.detail.entrySet()) {
-                                                    Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
-                                                    for (Map.Entry r : mapReceipts.entrySet()) {
-                                                        Receipt receipt = (Receipt)r.getValue();
-                                                        receipt.id = (String)r.getKey();
-                                                        receipt.group = (String)groupUserToken;
-                                                        String dateString = String.valueOf(receipt.date);
-                                                        NumberFormat nf = NumberFormat.getInstance();
-                                                        nf.setMaximumFractionDigits(2);
-                                                        nf.setMinimumFractionDigits(2);
-                                                        String amountString = nf.format(receipt.amount);
-                                                        expenseList.add(
-                                                                new ExpenseAdapterItem(
-                                                                        receipt.id,
-                                                                        receipt.group,
-                                                                        usersMap.get(receipt.userUid).profilePhotoUri,
-                                                                        dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
-                                                                        usersMap.get(receipt.userUid).displayName,
-                                                                        receipt.category,
-                                                                        amountString,
-                                                                        receipt.description,
-                                                                        receipt.receipt
-                                                                )
-                                                        );
+                                        if (s.receipts != null) {
+                                            for (Map.Entry y : s.receipts.entrySet()) {
+                                                Map<String, MonthlyReceipts> mapMonthlyReceipts = (Map<String, MonthlyReceipts>)y.getValue();
+                                                if (mapMonthlyReceipts != null) {
+                                                    for (Map.Entry mr : mapMonthlyReceipts.entrySet()) {
+                                                        MonthlyReceipts monthlyReceipts = (MonthlyReceipts)mr.getValue();
+                                                        if (monthlyReceipts.detail != null) {
+                                                            for (Map.Entry c : monthlyReceipts.detail.entrySet()) {
+                                                                Map<String, Receipt> mapReceipts = (Map<String, Receipt>)c.getValue();
+                                                                if (mapReceipts != null) {
+                                                                    for (Map.Entry r : mapReceipts.entrySet()) {
+                                                                        Receipt receipt = (Receipt)r.getValue();
+                                                                        receipt.id = (String)r.getKey();
+                                                                        receipt.group = (String)groupUserToken;
+                                                                        String dateString = String.valueOf(receipt.date);
+                                                                        NumberFormat nf = NumberFormat.getInstance();
+                                                                        nf.setMaximumFractionDigits(2);
+                                                                        nf.setMinimumFractionDigits(2);
+                                                                        String amountString = nf.format(receipt.amount);
+                                                                        expenseList.add(
+                                                                                new ExpenseAdapterItem(
+                                                                                        receipt.id,
+                                                                                        receipt.group,
+                                                                                        usersMap.get(receipt.userUid).profilePhotoUri,
+                                                                                        dateString.substring(4, 6) + "/" + dateString.substring(6, 8) + "/" + dateString.substring(0, 4),
+                                                                                        usersMap.get(receipt.userUid).displayName,
+                                                                                        receipt.category,
+                                                                                        amountString,
+                                                                                        receipt.description,
+                                                                                        receipt.receipt
+                                                                                )
+                                                                        );
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
@@ -359,9 +367,11 @@ public class ExpenseListFragment extends Fragment
         categoryList.clear();
 
         categoryList.add("All");
-        for (Map.Entry m : groupCategoryList.entrySet())
-        {
-            categoryList.add(((Category)m.getValue()).displayName);
+        if (groupCategoryList != null) {
+            for (Map.Entry m : groupCategoryList.entrySet())
+            {
+                categoryList.add(((Category)m.getValue()).displayName);
+            }
         }
         Spinner categorySpinner = rootView.findViewById(R.id.category);
         adapterCategoriesList.notifyDataSetChanged();
@@ -370,8 +380,10 @@ public class ExpenseListFragment extends Fragment
         membersList.clear();
 
         membersList.add("All");
-        for (Map.Entry m : groupMemberList.entrySet()) {
-            membersList.add(((Member)m.getValue()).displayName);
+        if (groupMemberList != null) {
+            for (Map.Entry m : groupMemberList.entrySet()) {
+                membersList.add(((Member)m.getValue()).displayName);
+            }
         }
         Spinner m = rootView.findViewById(R.id.members);
         adapterMembersList.notifyDataSetChanged();

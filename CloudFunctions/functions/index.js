@@ -16,6 +16,12 @@ exports.updateSummary = functions.database.ref('/spending/{groupToken}/receipts/
     .onWrite(async (change, context) => {
         console.log(`updateSummary groupToken: ${context.params.groupToken}, year: ${context.params.year}, month: ${context.params.month}`);
 
+        if (!change.after.exists()) {
+            console.log(`updateSummary deleting  ${change.after.ref.parent.child('summary').path}`);
+            await change.after.ref.parent.child('summary').remove();
+            return;
+        }
+
         const currentSummarySnapshot =
             await admin.database().ref(`/spending/${context.params.groupToken}/receipts/${context.params.year}/${context.params.month}/summary`).once('value');
 

@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -115,75 +116,95 @@ public class JoinGroupActivity extends BaseActivity {
 
     public void addMemberToGroup(final HashMap<String, Group> groups, final String token)
     {
-        for (Map.Entry g : groups.entrySet()) {
-            if ( g.getKey().equals(token) ) {
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if ( g.getKey().equals(token) ) {
 
-                for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
-                    if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
-                        // User already added
-                        Toast.makeText(getApplicationContext(), "Already part of this group.",
-                                Toast.LENGTH_SHORT).show();
-                        return;
+                    if (((Group)g.getValue()).members != null) {
+                        for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
+                            if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
+                                // User already added
+                                Toast.makeText(getApplicationContext(), "Already part of this group.",
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                        }
                     }
-                }
 
-                // Add user
-                final Member m = new Member();
-                m.uid = mAuth.getCurrentUser().getUid();
-                final Group group = ((Group)g.getValue());
-                DatabaseReference usersRef = mRootReference.child("users").child(m.uid);
-                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        User u = dataSnapshot.getValue(User.class);
-                        u.uid = dataSnapshot.getKey();
-                        m.displayName = u.displayName;
-                        group.members.put(m.uid, m);
+                    // Add user
+                    final Member m = new Member();
+                    m.uid = mAuth.getCurrentUser().getUid();
+                    final Group group = ((Group)g.getValue());
+                    DatabaseReference usersRef = mRootReference.child("users").child(m.uid);
+                    usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            final User u = dataSnapshot.getValue(User.class);
+                            u.uid = dataSnapshot.getKey();
+                            m.displayName = u.displayName;
+                            group.members.put(m.uid, m);
 
-                        // Add groups node
-                        groupsRef.setValue(groups).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    DatabaseReference uidRef = mRootReference.child("users").child(mAuth.getCurrentUser().getUid());
-                                    uidRef.child("group").setValue(token).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                Toast.makeText(JoinGroupActivity.this, "Join Group successful",
-                                                        Toast.LENGTH_SHORT).show();
+                            // Add groups node
+                            groupsRef.setValue(groups).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        DatabaseReference uidRef = mRootReference.child("users").child(mAuth.getCurrentUser().getUid());
+                                        uidRef.child("group").setValue(token).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    Category newCategory = new Category(u.uid, u.displayName, 100.0);
+                                                    DatabaseReference categoryRef = mRootReference.child("groups").child(group.token).child("categories").child(mAuth.getCurrentUser().getUid());
+                                                    categoryRef.setValue(newCategory).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            if (task.isSuccessful()) {
+                                                                Toast.makeText(JoinGroupActivity.this, "Join Group successful",
+                                                                        Toast.LENGTH_SHORT).show();
 
-                                                Intent intent = new Intent(JoinGroupActivity.this, LoginActivity.class);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                startActivity(intent);
-                                                finish();
-                                            } else {
-                                                Toast.makeText(JoinGroupActivity.this, "Unable to save user to database",
-                                                        Toast.LENGTH_SHORT).show();
-                                                if (task.getException() != null) {
-                                                    Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                                                Intent intent = new Intent(JoinGroupActivity.this, LoginActivity.class);
+                                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                startActivity(intent);
+                                                                finish();
+                                                            } else {
+                                                                Toast.makeText(JoinGroupActivity.this, "Unable to save category to database",
+                                                                        Toast.LENGTH_SHORT).show();
+                                                                if (task.getException() != null) {
+                                                                    Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                                                            Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                } else {
+                                                    Toast.makeText(JoinGroupActivity.this, "Unable to save user to database",
                                                             Toast.LENGTH_SHORT).show();
+                                                    if (task.getException() != null) {
+                                                        Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                                                Toast.LENGTH_SHORT).show();
+                                                    }
                                                 }
                                             }
-                                        }
-                                    });
-                                } else {
-                                    Toast.makeText(JoinGroupActivity.this, "Unable to save group to database",
-                                            Toast.LENGTH_SHORT).show();
-                                    if (task.getException() != null) {
-                                        Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                        });
+                                    } else {
+                                        Toast.makeText(JoinGroupActivity.this, "Unable to save group to database",
                                                 Toast.LENGTH_SHORT).show();
+                                        if (task.getException() != null) {
+                                            Toast.makeText(JoinGroupActivity.this, task.getException().getMessage(),
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
                                     }
                                 }
-                            }
-                        });
-                    }
+                            });
+                        }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
+                        }
+                    });
+                }
             }
         }
     }

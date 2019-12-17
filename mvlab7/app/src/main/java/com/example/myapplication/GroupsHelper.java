@@ -30,14 +30,14 @@ public class GroupsHelper {
 
         // Category info
         g.categories = new HashMap<String, Category>();
-        g.categories.put(user.uid, new Category(user.uid, user.displayName, -1));
-        g.categories.put("Groceries", new Category("Groceries", "Groceries", -1));
-        g.categories.put("School", new Category(user.uid, "School", -1));
-        g.categories.put("Automobile", new Category(user.uid, "Automobile", -1));
-        g.categories.put("Home Improvement", new Category(user.uid, "Home Improvement", -1));
-        g.categories.put("Dining", new Category(user.uid, "Dining", -1));
-        g.categories.put("Entertainment", new Category(user.uid, "Entertainment", -1));
-        g.categories.put("Gifts", new Category(user.uid, "Gifts", -1));
+        g.categories.put(user.uid, new Category(user.uid, user.displayName, -1.0));
+        g.categories.put("Groceries", new Category("Groceries", "Groceries", -1.0));
+        g.categories.put("School", new Category(user.uid, "School", -1.0));
+        g.categories.put("Automobile", new Category(user.uid, "Automobile", -1.0));
+        g.categories.put("Home Improvement", new Category(user.uid, "Home Improvement", -1.0));
+        g.categories.put("Dining", new Category(user.uid, "Dining", -1.0));
+        g.categories.put("Entertainment", new Category(user.uid, "Entertainment", -1.0));
+        g.categories.put("Gifts", new Category(user.uid, "Gifts", -1.0));
 
         // Create child reference; i.e. group node
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
@@ -59,9 +59,11 @@ public class GroupsHelper {
         mAuth = FirebaseAuth.getInstance();
 
         // Only admin can see token; verbally conveyed to users
-        for (Map.Entry  g : groups.entrySet()) {
-            if ( ((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                return ((Group)g.getValue()).token;
+        if (groups != null) {
+            for (Map.Entry  g : groups.entrySet()) {
+                if ( ((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+                    return ((Group)g.getValue()).token;
+                }
             }
         }
 
@@ -75,9 +77,11 @@ public class GroupsHelper {
         String myGroupName = getGroupName(groups);
 
         // Only admin can see token; verbally conveyed to users
-        for (Map.Entry  g : groups.entrySet()) {
-            if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
-                return ((Group)g.getValue()).token;
+        if (groups != null) {
+            for (Map.Entry  g : groups.entrySet()) {
+                if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
+                    return ((Group)g.getValue()).token;
+                }
             }
         }
 
@@ -90,17 +94,21 @@ public class GroupsHelper {
         mAuth = FirebaseAuth.getInstance();
 
         // If admin of a group, return that
-        for (Map.Entry  g : groups.entrySet()) {
-            if (((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                return ((Group)g.getValue()).name;
+        if (groups != null) {
+            for (Map.Entry  g : groups.entrySet()) {
+                if (((Group)g.getValue()).adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+                    return ((Group)g.getValue()).name;
+                }
             }
         }
 
         // Not an admin? see if member of a group
-        for (Map.Entry g : groups.entrySet()) {
-            for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
-                if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
-                    return ((Group)g.getValue()).name;
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                for (Map.Entry m : ((Group)g.getValue()).members.entrySet()) {
+                    if (m.getKey().equals(mAuth.getCurrentUser().getUid())) {
+                        return ((Group)g.getValue()).name;
+                    }
                 }
             }
         }
@@ -115,9 +123,11 @@ public class GroupsHelper {
     {
         String myGroupName = getGroupName(groups);
 
-        for (Map.Entry  g : groups.entrySet()) {
-            if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
-                return ((Group)g.getValue()).adminUid;
+        if (groups != null) {
+            for (Map.Entry  g : groups.entrySet()) {
+                if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
+                    return ((Group)g.getValue()).adminUid;
+                }
             }
         }
 
@@ -142,17 +152,19 @@ public class GroupsHelper {
     {
         String myGroupName = getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if ( ((Group)g.getValue()).name.equals(myGroupName) ) {
 
-                // Update group name
-                ((Group)g.getValue()).name = name;
+                    // Update group name
+                    ((Group)g.getValue()).name = name;
 
-                // Add groups node
-                DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-                DatabaseReference groupsRef =  mRootReference.child("groups");
-                groupsRef.setValue(groups);
-                return true;
+                    // Add groups node
+                    DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference groupsRef =  mRootReference.child("groups");
+                    groupsRef.setValue(groups);
+                    return true;
+                }
             }
         }
 
@@ -166,23 +178,27 @@ public class GroupsHelper {
         DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
 
         // If admin of a group, return that
-        for (Map.Entry  g : groups.entrySet()) {
-            Group databaseGroup = (Group)g.getValue();
-            if (databaseGroup.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
-                for (Map.Entry m : databaseGroup.members.entrySet()) {
-                    Member databaseMember = (Member)m.getValue();
-                    databaseMember.uid = (String)m.getKey();
+        if (groups != null) {
+            for (Map.Entry  g : groups.entrySet()) {
+                Group databaseGroup = (Group)g.getValue();
+                if (databaseGroup.adminUid.equals(mAuth.getCurrentUser().getUid()) ) {
+                    if (databaseGroup.members != null) {
+                        for (Map.Entry m : databaseGroup.members.entrySet()) {
+                            Member databaseMember = (Member)m.getValue();
+                            databaseMember.uid = (String)m.getKey();
 
-                    DatabaseReference groupRef =  mRootReference.child("users").child(databaseMember.uid).child("group");
-                    groupRef.removeValue();
+                            DatabaseReference groupRef =  mRootReference.child("users").child(databaseMember.uid).child("group");
+                            groupRef.removeValue();
+                        }
+                    }
+
+                    groups.remove(g.getKey());
+
+                    DatabaseReference groupsRef =  mRootReference.child("groups");
+                    groupsRef.setValue(groups);
+
+                    return true;
                 }
-
-                groups.remove(g.getKey());
-
-                DatabaseReference groupsRef =  mRootReference.child("groups");
-                groupsRef.setValue(groups);
-
-                return true;
             }
         }
 
@@ -192,22 +208,25 @@ public class GroupsHelper {
     static boolean updateCategory(HashMap<String, Group> groups, String name, Category category) {
         String myGroupName = getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group) g.getValue()).name.equals(myGroupName)) {
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group) g.getValue()).name.equals(myGroupName)) {
+                    if (((Group) g.getValue()).categories != null) {
+                        for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
+                            if (m.getKey().equals(name)) {
 
-                for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
-                    if (m.getKey().equals(name)) {
+                                //((Category) m.getValue()).name = category.name;
+                                ((Category)m.getValue()).limit = category.limit;
+                                //((Category)m.getValue()).displayName= category.displayName;
 
-                        //((Category) m.getValue()).name = category.name;
-                        ((Category)m.getValue()).limit = category.limit;
-                        //((Category)m.getValue()).displayName= category.displayName;
+                                // Add groups node
+                                DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+                                DatabaseReference groupsRef = mRootReference.child("groups");
+                                groupsRef.setValue(groups);
+                                return true;
 
-                        // Add groups node
-                        DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-                        DatabaseReference groupsRef = mRootReference.child("groups");
-                        groupsRef.setValue(groups);
-                        return true;
-
+                            }
+                        }
                     }
                 }
             }
@@ -221,9 +240,11 @@ public class GroupsHelper {
     {
         String myGroupName = GroupsHelper.getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                return ((Group)g.getValue()).members;
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                    return ((Group)g.getValue()).members;
+                }
             }
         }
 
@@ -241,13 +262,17 @@ public class GroupsHelper {
             return false;
         }
 
-        for (Map.Entry g : groups.entrySet())
-        {
-            for (Map.Entry m : ((Group)g.getValue()).members.entrySet())
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet())
             {
-                if (m.getKey().equals(uid)) {
-                    groupContainingMember = ((Group)g.getValue());
-                    memberToRemove = m.getKey().toString();
+                if (((Group)g.getValue()).members != null) {
+                    for (Map.Entry m : ((Group)g.getValue()).members.entrySet())
+                    {
+                        if (m.getKey().equals(uid)) {
+                            groupContainingMember = ((Group)g.getValue());
+                            memberToRemove = m.getKey().toString();
+                        }
+                    }
                 }
             }
         }
@@ -264,6 +289,9 @@ public class GroupsHelper {
             DatabaseReference groupRef = mRootReference.child("users").child(uid).child("group");
             groupRef.removeValue();
 
+            DatabaseReference categoryRef = mRootReference.child("groups").child(groupContainingMember.token).child("categories").child(uid);
+            categoryRef.removeValue();
+
             return true;
         }
 
@@ -275,9 +303,11 @@ public class GroupsHelper {
     {
         String myGroupName = GroupsHelper.getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                return ((Group)g.getValue()).categories;
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                    return ((Group)g.getValue()).categories;
+                }
             }
         }
 
@@ -288,12 +318,16 @@ public class GroupsHelper {
     {
         String myGroupName = GroupsHelper.getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
-                    //if (m.getKey().equals(name)) {
-                    if ( ((Category)m.getValue()).displayName.equals(name) ) {
-                        return ((Category) m.getValue());
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                    if(((Group) g.getValue()).categories != null) {
+                        for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
+                            //if (m.getKey().equals(name)) {
+                            if ( ((Category)m.getValue()).displayName.equals(name) ) {
+                                return ((Category) m.getValue());
+                            }
+                        }
                     }
                 }
             }
@@ -306,14 +340,16 @@ public class GroupsHelper {
     {
         String myGroupName = GroupsHelper.getGroupName(groups);
 
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                ((Group) g.getValue()).categories.put(name, new Category(name, name, -1));
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                    ((Group) g.getValue()).categories.put(name, new Category(name, name, -1.0));
 
-                // Add groups node
-                DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
-                DatabaseReference groupsRef =  mRootReference.child("groups");
-                groupsRef.setValue(groups);
+                    // Add groups node
+                    DatabaseReference mRootReference = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference groupsRef =  mRootReference.child("groups");
+                    groupsRef.setValue(groups);
+                }
             }
         }
     }
@@ -333,12 +369,16 @@ public class GroupsHelper {
         // Not an admin? see if member of a group
         Group groupContainingMember = null;
         String memberToRemove = null;
-        for (Map.Entry g : groups.entrySet()) {
-            if (((Group)g.getValue()).name.equals(myGroupName) ) {
-                for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
-                    if (m.getKey().equals(category)) {
-                        groupContainingMember = ((Group) g.getValue());
-                        memberToRemove = m.getKey().toString();
+        if (groups != null) {
+            for (Map.Entry g : groups.entrySet()) {
+                if (((Group)g.getValue()).name.equals(myGroupName) ) {
+                    if (((Group) g.getValue()).categories != null) {
+                        for (Map.Entry m : ((Group) g.getValue()).categories.entrySet()) {
+                            if (m.getKey().equals(category)) {
+                                groupContainingMember = ((Group) g.getValue());
+                                memberToRemove = m.getKey().toString();
+                            }
+                        }
                     }
                 }
             }

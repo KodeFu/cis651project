@@ -70,8 +70,10 @@ public class AdministerGroupActivity extends BaseActivity {
         Map<String, Member> groupMemberList = GroupsHelper.getMembers(groupsList);
         membersList.clear();
 
-        for (Map.Entry m : groupMemberList.entrySet()) {
-            membersList.add(((Member)m.getValue()).displayName);
+        if (groupMemberList != null) {
+            for (Map.Entry m : groupMemberList.entrySet()) {
+                membersList.add(((Member)m.getValue()).displayName);
+            }
         }
         Spinner m = findViewById(R.id.members);
         adapterMembersList.notifyDataSetChanged();
@@ -106,9 +108,11 @@ public class AdministerGroupActivity extends BaseActivity {
 
         Map<String, Member> groupMemberList = GroupsHelper.getMembers(groupsList);
 
-        for (Map.Entry m : groupMemberList.entrySet()) {
-            if (((Member)m.getValue()).displayName.equals(selectedItem)) {
-                uid = m.getKey().toString();
+        if (groupMemberList != null) {
+            for (Map.Entry m : groupMemberList.entrySet()) {
+                if (((Member)m.getValue()).displayName.equals(selectedItem)) {
+                    uid = m.getKey().toString();
+                }
             }
         }
 
